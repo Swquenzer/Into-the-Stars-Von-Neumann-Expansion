@@ -1,6 +1,6 @@
 import React from "react";
 import { GameState, Probe, ProbeStats, ProbeState } from "../types";
-import { UPGRADE_COSTS } from "../constants";
+import { UPGRADE_COSTS, MAX_STAT_LEVELS } from "../constants";
 
 export type SetGameState = React.Dispatch<React.SetStateAction<GameState>>;
 
@@ -68,13 +68,27 @@ export const handleUpgradeProbe = (
     if (!upgradeConfig) return prev;
 
     const currentVal = probe.stats[statKey];
+    const maxLevel = MAX_STAT_LEVELS[statKey];
+
+    // Check if already at max level
+    if (currentVal >= maxLevel) {
+      return {
+        ...prev,
+        logs: [
+          ...prev.logs,
+          `${probe.name}: ${upgradeConfig.name} already at maximum level.`,
+        ],
+      };
+    }
     let levelFactor = currentVal;
     if (statKey === "scanRange") {
       levelFactor = currentVal / upgradeConfig.increment;
     }
 
-    const metalCost = Math.floor(upgradeConfig.Metal * levelFactor);
-    const plutoniumCost = Math.floor(upgradeConfig.Plutonium * levelFactor);
+    const metalCost = Math.floor(upgradeConfig.Metal * (levelFactor + 1));
+    const plutoniumCost = Math.floor(
+      upgradeConfig.Plutonium * (levelFactor + 1)
+    );
 
     if (
       probe.inventory.Metal < metalCost ||

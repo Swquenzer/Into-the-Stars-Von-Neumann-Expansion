@@ -53,6 +53,16 @@ App.tsx
 └── ProbeDesigner.tsx        # Modal for custom blueprint creation
 ```
 
+### UI Color Scheme
+
+- **Metal**: Yellow (`yellow-400/500/800/900`) - Mining icons, inventory, progress bars, buttons
+- **Plutonium**: Teal (`teal-400/500/800/900`) - Fuel, thrust, travel progress
+- **Scanning**: Indigo (`indigo-400/500`) - Scan operations and range
+- **Exploration**: Emerald (`emerald-400/500`) - Deep space travel, replication
+- **Autonomy/AI**: Purple (`purple-400/500`) - AI systems and neural cores
+- **Mining Speed**: Yellow (`yellow-400`) - Upgrade icon
+- **Warnings**: Amber (`amber-400/500`) - Solar sailing, low resources, max levels
+
 ## Critical Game Mechanics
 
 ### Dual Navigation System
@@ -110,17 +120,20 @@ export const handleLaunch = (
   targetSystemId: string
 ) => {
   // Validation
-  const probe = gameState.probes.find(p => p.id === gameState.selectedProbeId);
+  const probe = gameState.probes.find(
+    (p) => p.id === gameState.selectedProbeId
+  );
   if (!probe || probe.state !== ProbeState.Idle) return;
-  
+
   // Immutable state update
-  setGameState(prev => ({
+  setGameState((prev) => ({
     ...prev,
-    probes: prev.probes.map(p => p.id === probe.id 
-      ? { ...p, state: ProbeState.Traveling, targetSystemId, progress: 0 }
-      : p
+    probes: prev.probes.map((p) =>
+      p.id === probe.id
+        ? { ...p, state: ProbeState.Traveling, targetSystemId, progress: 0 }
+        : p
     ),
-    logs: [...prev.logs, `${probe.name} launched to ${targetSystem.name}`]
+    logs: [...prev.logs, `${probe.name} launched to ${targetSystem.name}`],
   }));
 };
 ```
@@ -151,7 +164,7 @@ export const processTravelingProbe = (
 **Game loop** (`App.tsx`) calls logic functions for each probe state, accumulates results, applies once:
 
 ```typescript
-prev.probes.forEach(probe => {
+prev.probes.forEach((probe) => {
   if (probe.state === ProbeState.Traveling) {
     const result = processTravelingProbe(probe, systems, delta);
     updatedProbe = result.probe;
@@ -171,6 +184,14 @@ return { ...prev, probes: finalProbes, logs: [...prev.logs, ...newLogs] };
 4. Add UI controls in `OperationsListPanel.tsx` or relevant panel
 5. Add handler in `handlers/operationHandlers.ts` if user-initiated
 
+### Adding New Upgradeable Stats
+
+1. Add to `ProbeStats` interface in `types.ts`
+2. Add entry to `UPGRADE_COSTS` in `constants.ts` with cost and increment
+3. Add max level to `MAX_STAT_LEVELS` in `constants.ts`
+4. Add UI row in `ProbesListPanel.tsx` `renderUpgradeRow()` calls
+5. Upgrade handler in `probeHandlers.ts` automatically handles new stats
+
 ### Gemini Integration
 
 - `geminiService.ts` uses `@google/genai` package
@@ -182,8 +203,12 @@ return { ...prev, probes: finalProbes, logs: [...prev.logs, ...newLogs] };
 
 - **Universe**: 2000×2000 base, infinite via sectors
 - **Speeds**: Flight speed multiplied by stats, ~10 units/sec base
-- **Costs**: Defined for upgrades (`UPGRADE_COSTS`) and blueprints
-- When adding upgrades, follow pattern: `{ Metal, Plutonium, increment, name }`
+- **Upgrade Costs**: Defined in `UPGRADE_COSTS`, pattern: `{ Metal, Plutonium, increment, name }`
+  - Cost scales with level: `cost = baseCost * (currentLevel + 1)`
+  - Example: Level 0→1 costs 100M, Level 1→2 costs 200M, etc.
+- **Max Stat Levels** (`MAX_STAT_LEVELS`):
+  - Mining Speed: 10, Flight Speed: 10, Replication Speed: 5
+  - Scan Range: 1000 LY, Scan Speed: 5x, Autonomy: 2
 
 ## Common Tasks
 
@@ -236,6 +261,7 @@ npm run build        # Production build
 **After making significant code changes, always review and update this file.**
 
 Changes that require documentation updates:
+
 - New architectural patterns or refactoring (handlers, logic, components)
 - New game mechanics or probe states
 - Changes to the game loop or state management patterns

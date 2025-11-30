@@ -59,6 +59,16 @@ export const UPGRADE_COSTS = {
   },
 };
 
+// Maximum stat levels
+export const MAX_STAT_LEVELS = {
+  miningSpeed: 10,
+  flightSpeed: 10,
+  replicationSpeed: 5,
+  scanRange: 1000, // 300 base + (50 * 14 upgrades)
+  scanSpeed: 5, // 1 base + (0.5 * 10 upgrades)
+  autonomyLevel: 2,
+};
+
 // Default Stats for reference and backward compatibility
 export const PROBE_STATS: Record<
   ProbeModel,

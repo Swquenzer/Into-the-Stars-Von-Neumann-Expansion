@@ -7,7 +7,11 @@ import {
   ProbeBlueprint,
   ProbeStats,
 } from "../../types";
-import { TURN_COST_PER_DEGREE, UPGRADE_COSTS } from "../../constants";
+import {
+  TURN_COST_PER_DEGREE,
+  UPGRADE_COSTS,
+  MAX_STAT_LEVELS,
+} from "../../constants";
 import {
   Rocket,
   Pickaxe,
@@ -143,19 +147,23 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
     if (!selectedProbe) return null;
     const currentVal = selectedProbe.stats[statKey];
     const config = UPGRADE_COSTS[statKey];
+    const maxLevel = MAX_STAT_LEVELS[statKey];
 
     let levelFactor = currentVal;
     if (statKey === "scanRange") levelFactor = currentVal / config.increment;
 
-    const metalCost = Math.floor(config.Metal * levelFactor);
-    const plutoniumCost = Math.floor(config.Plutonium * levelFactor);
+    // Check if at max level
+    const isAtMax = currentVal >= maxLevel;
+
+    const metalCost = Math.floor(config.Metal * (levelFactor + 1));
+    const plutoniumCost = Math.floor(config.Plutonium * (levelFactor + 1));
 
     const canAfford =
       selectedProbe.inventory.Metal >= metalCost &&
       selectedProbe.inventory.Plutonium >= plutoniumCost;
 
-    // Special check for autonomy max level
-    if (statKey === "autonomyLevel" && currentVal >= 2) return null;
+    // Hide autonomy upgrades at max level
+    if (statKey === "autonomyLevel" && isAtMax) return null;
 
     return (
       <div className="bg-slate-900 p-2 rounded border border-slate-800 flex justify-between items-center group">
@@ -165,19 +173,27 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
           </div>
           <div className="text-[10px] text-slate-500">
             Lvl {levelFactor} →{" "}
-            <span className="text-cyan-400">Lvl {levelFactor + 1}</span>
+            {isAtMax ? (
+              <span className="text-amber-400 font-bold">MAX</span>
+            ) : (
+              <span className="text-cyan-400">Lvl {levelFactor + 1}</span>
+            )}
           </div>
         </div>
         <button
           onClick={() => onUpgradeProbe(selectedProbe.id, statKey)}
-          disabled={!canAfford || selectedProbe.state !== ProbeState.Idle}
+          disabled={
+            isAtMax || !canAfford || selectedProbe.state !== ProbeState.Idle
+          }
           className={`px-2 py-1.5 rounded text-[10px] font-bold border transition-colors flex flex-col items-end min-w-[80px] ${
-            canAfford && selectedProbe.state === ProbeState.Idle
+            isAtMax
+              ? "bg-amber-900/20 border-amber-800/50 text-amber-600 cursor-not-allowed"
+              : canAfford && selectedProbe.state === ProbeState.Idle
               ? "bg-emerald-900/30 border-emerald-800 hover:bg-emerald-900/50 text-emerald-300 cursor-pointer"
               : "bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed opacity-60"
           }`}
         >
-          <span>UPGRADE</span>
+          <span>{isAtMax ? "MAX" : "UPGRADE"}</span>
           <div className="flex gap-1 text-[9px] opacity-80">
             <span>M:{metalCost}</span>
             <span>P:{plutoniumCost}</span>
