@@ -50,6 +50,7 @@ export interface ProbesPanelProps {
   onReplicate: (blueprint: ProbeBlueprint) => void;
   onRenameProbe: (id: string, newName: string) => void;
   onScan: () => void;
+  onResearch: () => void;
   onOpenDesigner: (blueprint?: ProbeBlueprint) => void;
   onDeleteBlueprint: (id: string) => void;
   onDeepSpaceLaunch: (heading: number) => void;
@@ -70,6 +71,7 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
   onReplicate,
   onRenameProbe,
   onScan,
+  onResearch,
   onOpenDesigner,
   onDeleteBlueprint,
   onDeepSpaceLaunch,
@@ -119,6 +121,8 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
     currentLocation && currentLocation.resourceYield.Metal > 0;
   const canMinePlutonium =
     currentLocation && currentLocation.resourceYield.Plutonium > 0;
+  const canResearch =
+    currentLocation && (currentLocation.scienceRemaining ?? 0) > 0;
 
   // Calculate Turn Cost
   const turnCost = useMemo(() => {
@@ -656,7 +660,22 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                           ? "ADJUST COURSE"
                           : "DEEP SPACE"}
                       </button>
-                      {/* Placeholder for future buttons */}
+                      <button
+                        onClick={onResearch}
+                        disabled={
+                          selectedProbe.state !== ProbeState.Idle ||
+                          !selectedProbe.locationId ||
+                          !canResearch
+                        }
+                        className="flex items-center justify-center gap-1 bg-slate-800 hover:bg-slate-700 text-emerald-300 py-1.5 rounded text-[10px] font-bold border border-slate-700 transition-colors disabled:opacity-30"
+                        title={
+                          !canResearch
+                            ? "No research remaining in this system"
+                            : ""
+                        }
+                      >
+                        <Activity size={12} /> RESEARCH
+                      </button>
                     </div>
                   )}
 

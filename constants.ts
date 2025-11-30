@@ -11,6 +11,11 @@ export const PASSIVE_SCAN_RANGE = 150; // Distance to passively discover systems
 export const TURN_COST_PER_DEGREE = 0.2; // Plutonium cost per degree of turn (Increased for balance)
 export const SOLAR_SAIL_SPEED_MULTIPLIER = 0.05; // Speed multiplier when out of fuel
 
+// Research & Science
+export const RESEARCH_RATE_BASE = 2; // Science per second at scanSpeed=1
+export const SCIENCE_DISTANCE_FACTOR = 0.002; // Multiplier per unit distance from Earth
+export const SCIENCE_BASE_PER_SYSTEM = 200; // Base science even near Earth
+
 // Base costs for an empty chassis
 export const BASE_COST = {
   Metal: 10,

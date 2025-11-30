@@ -10,6 +10,7 @@ import {
   SOLAR_SAIL_SPEED_MULTIPLIER,
   TURN_COST_PER_DEGREE,
   PASSIVE_SCAN_RANGE,
+  RESEARCH_RATE_BASE,
 } from "../constants";
 import {
   checkSectorGeneration,
@@ -21,6 +22,7 @@ export interface StateUpdateResult {
   logMessages: string[];
   systemUpdates: { index: number; updates: Partial<SolarSystem> }[];
   newProbes: Probe[];
+  scienceDelta?: number;
 }
 
 /**
@@ -99,6 +101,72 @@ export const processTravelingProbe = (
   }
 
   return { probe: updatedProbe, logMessages, systemUpdates, newProbes: [] };
+};
+
+/**
+ * Process a probe in the Researching state
+ */
+export const processResearchingProbe = (
+  probe: Probe,
+  systems: SolarSystem[],
+  delta: number
+): StateUpdateResult => {
+  const logMessages: string[] = [];
+  const systemUpdates: { index: number; updates: Partial<SolarSystem> }[] = [];
+  const updatedProbe = { ...probe };
+
+  const sysIndex = systems.findIndex((s) => s.id === probe.locationId);
+  if (sysIndex === -1) {
+    updatedProbe.state = ProbeState.Idle;
+    updatedProbe.progress = 0;
+    return { probe: updatedProbe, logMessages, systemUpdates, newProbes: [] };
+  }
+
+  const system = systems[sysIndex];
+  const remaining = system.scienceRemaining ?? 0;
+  if (remaining <= 0) {
+    updatedProbe.state = ProbeState.Idle;
+    updatedProbe.progress = 0;
+    logMessages.push(
+      `${updatedProbe.name} halted. Science exhausted in ${system.name}.`
+    );
+    return { probe: updatedProbe, logMessages, systemUpdates, newProbes: [] };
+  }
+
+  const ratePerSecond =
+    RESEARCH_RATE_BASE * Math.max(0.1, updatedProbe.stats.scanSpeed);
+  const amount = ratePerSecond * (delta / 1000);
+
+  const toCollect = Math.min(amount, remaining);
+  const newRemaining = Math.max(0, remaining - toCollect);
+
+  const progressTotal =
+    system.scienceTotal && system.scienceTotal > 0
+      ? system.scienceTotal
+      : remaining;
+  const collectedSoFar = progressTotal - newRemaining;
+  updatedProbe.progress = Math.min(100, (collectedSoFar / progressTotal) * 100);
+
+  systemUpdates.push({
+    index: sysIndex,
+    updates: { scienceRemaining: newRemaining },
+  });
+
+  if (newRemaining <= 0) {
+    updatedProbe.state = ProbeState.Idle;
+    updatedProbe.progress = 0;
+    logMessages.push(
+      `${updatedProbe.name} completed research at ${system.name}.`
+    );
+  }
+
+  return {
+    probe: updatedProbe,
+    logMessages,
+    systemUpdates,
+    newProbes: [],
+    scienceDelta: toCollect,
+  };
 };
 
 /**

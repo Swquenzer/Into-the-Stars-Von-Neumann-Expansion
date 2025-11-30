@@ -13,6 +13,8 @@ import {
   SECTOR_SIZE,
   PROBE_STATS,
   DEFAULT_BLUEPRINTS,
+  SCIENCE_DISTANCE_FACTOR,
+  SCIENCE_BASE_PER_SYSTEM,
 } from "../constants";
 
 export const generateCoordinatesInSector = (
@@ -94,6 +96,14 @@ export const generateSystemsForSector = (
       return Math.floor(base * variance * multiplier);
     };
 
+    // Seed finite science based on distance (further = more)
+    const science = Math.max(
+      0,
+      Math.floor(
+        SCIENCE_BASE_PER_SYSTEM + distFromEarth * SCIENCE_DISTANCE_FACTOR
+      )
+    );
+
     newSystems.push({
       id: `sys-${sectorX}-${sectorY}-${i}-${Date.now()}`,
       name: generateSystemName(Math.floor(Math.random() * 1000)),
@@ -109,6 +119,8 @@ export const generateSystemsForSector = (
         [ResourceType.Metal]: getYield(1),
         [ResourceType.Plutonium]: getYield(0.5),
       },
+      scienceRemaining: science,
+      scienceTotal: science,
     });
   }
   return newSystems;
@@ -129,6 +141,8 @@ export const createInitialState = (): GameState => {
       [ResourceType.Metal]: 1000,
       [ResourceType.Plutonium]: 500,
     },
+    scienceRemaining: 300,
+    scienceTotal: 300,
   };
 
   // Determine which sector Earth is in
@@ -157,6 +171,8 @@ export const createInitialState = (): GameState => {
       [ResourceType.Metal]: 2000,
       [ResourceType.Plutonium]: 800,
     },
+    scienceRemaining: 250,
+    scienceTotal: 250,
   });
 
   const n2Pos = { x: earthPos.x - 200, y: earthPos.y + 350 };
@@ -172,6 +188,8 @@ export const createInitialState = (): GameState => {
       [ResourceType.Metal]: 1500,
       [ResourceType.Plutonium]: 1000,
     },
+    scienceRemaining: 220,
+    scienceTotal: 220,
   });
 
   const initialProbe: Probe = {
@@ -188,6 +206,7 @@ export const createInitialState = (): GameState => {
     stats: PROBE_STATS[ProbeModel.MarkI],
     progress: 0,
     miningBuffer: 0,
+    researchBuffer: 0,
     isAutonomyEnabled: true, // Default to true for consistency, though it starts with level 0
     lastDiversionCheck: Date.now(),
   };
@@ -202,5 +221,6 @@ export const createInitialState = (): GameState => {
     selectedProbeId: initialProbe.id,
     selectedSystemId: earth.id,
     logs: ["Mission Control initialized.", "Genesis-1 ready for orders."],
+    science: 0,
   };
 };

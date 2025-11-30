@@ -54,7 +54,9 @@ export const handleStopOperation = (
     if (
       probe.state !== ProbeState.MiningMetal &&
       probe.state !== ProbeState.MiningPlutonium &&
-      probe.state !== ProbeState.Replicating
+      probe.state !== ProbeState.Replicating &&
+      probe.state !== ProbeState.Scanning &&
+      probe.state !== ProbeState.Researching
     ) {
       return prev;
     }
@@ -111,6 +113,42 @@ export const handleScan = (
       logs: [
         ...prev.logs,
         `${probe.name} initializing wide-band sensor sweep.`,
+      ],
+    };
+  });
+};
+
+/**
+ * Start researching at the current system
+ */
+export const handleResearch = (
+  setGameState: SetGameState,
+  gameState: GameState
+) => {
+  setGameState((prev) => {
+    const probe = prev.probes.find((p) => p.id === prev.selectedProbeId);
+    if (!probe || probe.state !== ProbeState.Idle || !probe.locationId)
+      return prev;
+
+    const system = prev.systems.find((s) => s.id === probe.locationId);
+    const hasScience = (system?.scienceRemaining ?? 0) > 0;
+    if (!system || !hasScience) return prev;
+
+    return {
+      ...prev,
+      probes: prev.probes.map((p) =>
+        p.id === probe.id
+          ? {
+              ...p,
+              state: ProbeState.Researching,
+              progress: 0,
+              researchBuffer: 0,
+            }
+          : p
+      ),
+      logs: [
+        ...prev.logs,
+        `${probe.name} initiating research at ${system.name}.`,
       ],
     };
   });

@@ -1,31 +1,31 @@
-
 export enum ResourceType {
-  Metal = 'Metal',
-  Plutonium = 'Plutonium'
+  Metal = "Metal",
+  Plutonium = "Plutonium",
 }
 
 export enum ProbeState {
-  Idle = 'Idle',
-  MiningMetal = 'Mining Metal',
-  MiningPlutonium = 'Mining Plutonium',
-  Traveling = 'Traveling',
-  Replicating = 'Replicating',
-  Scanning = 'Scanning',
-  Exploring = 'Exploring'
+  Idle = "Idle",
+  MiningMetal = "Mining Metal",
+  MiningPlutonium = "Mining Plutonium",
+  Traveling = "Traveling",
+  Replicating = "Replicating",
+  Scanning = "Scanning",
+  Exploring = "Exploring",
+  Researching = "Researching",
 }
 
 export enum AutonomyState {
-  Idle = 'Idle',             // Waiting/Thinking
-  GatheringFuel = 'Fueling', // Mining Plutonium for travel
-  GatheringMats = 'Gathering', // Mining resources for replication
-  ReadyToLaunch = 'Ready',   // Pre-flight check
+  Idle = "Idle", // Waiting/Thinking
+  GatheringFuel = "Fueling", // Mining Plutonium for travel
+  GatheringMats = "Gathering", // Mining resources for replication
+  ReadyToLaunch = "Ready", // Pre-flight check
 }
 
 export enum ProbeModel {
-  MarkI = 'Mark I',
-  MarkII = 'Mark II', // Faster flight, better sensors
-  MarkIII = 'Mark III', // Faster mining
-  VonNeumannPrime = 'Von Neumann Prime' // Fast replication, best sensors
+  MarkI = "Mark I",
+  MarkII = "Mark II", // Faster flight, better sensors
+  MarkIII = "Mark III", // Faster mining
+  VonNeumannPrime = "Von Neumann Prime", // Fast replication, best sensors
 }
 
 export interface Coordinates {
@@ -49,6 +49,8 @@ export interface SolarSystem {
     [ResourceType.Metal]: number; // Total available
     [ResourceType.Plutonium]: number; // Total available
   };
+  scienceRemaining?: number; // Finite science pool remaining in this system
+  scienceTotal?: number; // Original total science for display/analytics
 }
 
 export interface ProbeStats {
@@ -100,6 +102,7 @@ export interface Probe {
   pendingBlueprint?: ProbeBlueprint; // Blueprint being constructed if Replicating
   isSolarSailing?: boolean; // If true, traveling at reduced speed due to lack of fuel
   isAutonomyEnabled?: boolean; // User toggle for AI behavior
+  researchBuffer?: number; // Accumulator for science collection
 }
 
 export interface GameState {
@@ -112,4 +115,5 @@ export interface GameState {
   selectedProbeId: string | null;
   selectedSystemId: string | null;
   logs: string[];
+  science: number; // Global science bank
 }

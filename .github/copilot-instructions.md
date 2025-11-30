@@ -34,7 +34,7 @@ App.tsx                   # State orchestration & game loop coordination
 
 ### Type System (`types.ts`)
 
-- **ProbeState enum**: 7 states (Idle, Mining\*, Traveling, Replicating, Scanning, Exploring)
+- **ProbeState enum**: 8 states (Idle, Mining\*, Traveling, Replicating, Scanning, Exploring, Researching)
 - **Key interfaces**: `Probe`, `SolarSystem`, `ProbeStats`, `ProbeBlueprint`, `GameState`
 - Probes track both discrete location (`locationId`) and continuous position (`{ x, y }`)
 - Systems have 3 visibility states: `discovered` (on map), `visited` (probe arrived), `analyzed` (resources revealed)
@@ -106,6 +106,13 @@ Probes with `stats.autonomyLevel > 0` execute AI logic in `tick()`:
   - Travel: `distance * FUEL_CONSUMPTION_RATE` (0.2 Pu/unit)
   - Turning: `degrees * TURN_COST_PER_DEGREE` (0.2 Pu/degree)
 - **Solar Sailing**: Speed multiplier 0.05x when Plutonium = 0
+
+### Science & Research
+
+- Systems have finite `scienceRemaining` seeded by distance from Earth; consumed via Research.
+- Probes set to `Researching` generate global `GameState.science` at `RESEARCH_RATE_BASE * scanSpeed` per second until the system's `scienceRemaining` is 0.
+- Processor: `processResearchingProbe()` in `logic/gameLoop.ts` returns `scienceDelta` and `systemUpdates`.
+- Handlers/UI: `handleResearch()` in `handlers/operationHandlers.ts`; button in `ProbesListPanel` under Extra Actions; science bank shown in `ControlPanel` sidebar.
 
 ## Development Patterns
 

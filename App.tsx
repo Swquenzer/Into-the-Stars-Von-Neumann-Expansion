@@ -19,6 +19,7 @@ import {
   processMiningProbe,
   processReplicatingProbe,
   processScanningProbe,
+  processResearchingProbe,
 } from "./logic/gameLoop";
 import {
   handleSelectSystem as selectSystem,
@@ -39,6 +40,7 @@ import {
   handleStopOperation as stopOperation,
   handleScan as scanArea,
   handleReplicate as replicateProbe,
+  handleResearch as startResearch,
 } from "./handlers/operationHandlers";
 import { handleAnalyze as analyzeSystem } from "./handlers/systemHandlers";
 import {
@@ -77,6 +79,7 @@ export default function App() {
   const handleScan = () => scanArea(setGameState, gameState);
   const handleReplicate = (blueprint: any) =>
     replicateProbe(setGameState, gameState, blueprint);
+  const handleResearch = () => startResearch(setGameState, gameState);
   const handleOpenDesigner = (blueprint?: any) =>
     openDesigner(setGameState, blueprint);
   const handleCloseDesigner = () => closeDesigner(setGameState);
@@ -100,6 +103,7 @@ export default function App() {
       const newSystems = [...prev.systems];
       const newGeneratedSectors = new Set<string>(prev.generatedSectors);
       const newLogs: string[] = [];
+      let scienceDeltaTotal = 0;
       const finalProbes: Probe[] = [];
       const createdProbes: Probe[] = [];
 
@@ -276,6 +280,22 @@ export default function App() {
             generatedSectorsChanged = true;
             systemsChanged = true;
           }
+        } else if (updatedProbe.state === ProbeState.Researching) {
+          const result = processResearchingProbe(
+            updatedProbe,
+            newSystems,
+            delta
+          );
+          updatedProbe = result.probe;
+          newLogs.push(...result.logMessages);
+          result.systemUpdates.forEach((update) => {
+            newSystems[update.index] = {
+              ...newSystems[update.index],
+              ...update.updates,
+            };
+            systemsChanged = true;
+          });
+          if (result.scienceDelta) scienceDeltaTotal += result.scienceDelta;
         }
 
         finalProbes.push(updatedProbe);
@@ -288,6 +308,10 @@ export default function App() {
         generatedSectors: generatedSectorsChanged
           ? newGeneratedSectors
           : prev.generatedSectors,
+        science:
+          scienceDeltaTotal !== 0
+            ? prev.science + scienceDeltaTotal
+            : prev.science,
         logs: newLogs.length > 0 ? [...prev.logs, ...newLogs] : prev.logs,
       };
     });
@@ -318,6 +342,7 @@ export default function App() {
         onMine={handleMine}
         onStopOperation={handleStopOperation}
         onReplicate={handleReplicate}
+        onResearch={handleResearch}
         onAnalyze={handleAnalyze}
         onSystemSelect={handleSelectSystem}
         onProbeSelect={handleSelectProbe}

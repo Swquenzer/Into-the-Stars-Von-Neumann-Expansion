@@ -96,6 +96,17 @@ export const OperationsListPanel: React.FC<OperationsPanelProps> = ({
             if (probe.stats.autonomyLevel > 0) details = " (Auto) " + details;
             progressColor = "bg-indigo-500";
             OperationIcon = Radar;
+          } else if (probe.state === ProbeState.Researching) {
+            const locName =
+              systems.find((s) => s.id === probe.locationId)?.name || "Unknown";
+            const system = systems.find((s) => s.id === probe.locationId);
+            const scienceRate = (
+              2 * Math.max(0.1, probe.stats.scanSpeed)
+            ).toFixed(1);
+            details = ` researching at ${locName} (${scienceRate} sci/s)`;
+            if (probe.stats.autonomyLevel > 0) details = " (Auto) " + details;
+            progressColor = "bg-emerald-500";
+            OperationIcon = Activity;
           } else if (probe.state === ProbeState.Exploring) {
             const sailing = probe.inventory.Plutonium <= 0;
             details = sailing
@@ -106,10 +117,15 @@ export const OperationsListPanel: React.FC<OperationsPanelProps> = ({
             OperationIcon = sailing ? Wind : Compass;
           }
 
-          const displayPct =
+          // Calculate display percentage - invert for research to show remaining
+          let displayPct =
             probe.state === ProbeState.Traveling
               ? Math.floor(probe.progress * 100)
               : Math.floor(probe.progress);
+
+          if (probe.state === ProbeState.Researching) {
+            displayPct = 100 - displayPct; // Invert to show remaining science
+          }
 
           return (
             <button

@@ -27,6 +27,7 @@ interface ControlPanelProps {
   onMine: (resource: ResourceType) => void;
   onStopOperation: () => void;
   onReplicate: (blueprint: ProbeBlueprint) => void;
+  onResearch: () => void;
   onAnalyze: (systemId: string) => void;
   onSystemSelect: (id: string) => void;
   onProbeSelect: (id: string) => void;
@@ -48,6 +49,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onMine,
   onStopOperation,
   onReplicate,
+  onResearch,
   onAnalyze,
   onSystemSelect,
   onProbeSelect,
@@ -68,6 +70,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     selectedProbeId,
     selectedSystemId,
     logs,
+    science,
   } = gameState;
   const [activeTabs, setActiveTabs] = useState<Record<string, boolean>>({
     probes: true,
@@ -138,6 +141,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               onReplicate={onReplicate}
               onRenameProbe={onRenameProbe}
               onScan={onScan}
+              onResearch={onResearch}
               onOpenDesigner={onOpenDesigner}
               onDeleteBlueprint={onDeleteBlueprint}
               onDeepSpaceLaunch={onDeepSpaceLaunch}
@@ -253,6 +257,12 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         >
           <Download size={20} />
         </button>
+
+        {/* Science Bank Display */}
+        <div className="text-[10px] text-emerald-300 font-bold mt-auto mb-1 text-center px-1">
+          SCI
+          <div className="text-slate-300 font-mono">{Math.floor(science)}</div>
+        </div>
       </div>
     </div>
   );
