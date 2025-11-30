@@ -13,12 +13,14 @@ import {
   Satellite,
   Upload,
   Download,
+  Beaker,
 } from "lucide-react";
 
 import { ProbesListPanel } from "./panels/ProbesListPanel";
 import { SystemsListPanel } from "./panels/SystemsListPanel";
 import { OperationsListPanel } from "./panels/OperationsListPanel";
 import { LogsListPanel } from "./panels/LogsListPanel";
+import { SciencePanel } from "./panels/SciencePanel";
 
 interface ControlPanelProps {
   gameState: GameState;
@@ -38,6 +40,7 @@ interface ControlPanelProps {
   onUpgradeProbe: (probeId: string, stat: keyof ProbeStats) => void;
   onSelfDestruct: (probeId: string) => void;
   onToggleAutonomy: (probeId: string) => void;
+  onPurchaseUnlock: (unlockId: string) => void;
   onExportSave: () => void;
   onImportSave: (file: File) => void;
 }
@@ -60,6 +63,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onUpgradeProbe,
   onSelfDestruct,
   onToggleAutonomy,
+  onPurchaseUnlock,
   onExportSave,
   onImportSave,
 }) => {
@@ -77,6 +81,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     systems: true,
     operations: false,
     logs: false,
+    science: false,
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -134,6 +139,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               systems={systems}
               blueprints={blueprints}
               selectedProbeId={selectedProbeId}
+              maxStatLevelOverrides={gameState.maxStatLevelOverrides}
               onProbeSelect={onProbeSelect}
               onSystemSelect={onSystemSelect}
               onMine={onMine}
@@ -181,6 +187,15 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         {activeTabs.logs && (
           <div className="w-72 h-full border-r border-slate-800">
             <LogsListPanel logs={logs} />
+          </div>
+        )}
+
+        {activeTabs.science && (
+          <div className="w-80 h-full border-r border-slate-800">
+            <SciencePanel
+              gameState={gameState}
+              onPurchaseUnlock={onPurchaseUnlock}
+            />
           </div>
         )}
       </div>
@@ -231,6 +246,17 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         >
           <Terminal size={20} />
         </button>
+        <button
+          onClick={() => toggleTab("science")}
+          className={`p-2 rounded-lg transition-colors ${
+            activeTabs.science
+              ? "bg-emerald-900/50 text-emerald-400"
+              : "text-slate-600 hover:bg-slate-900"
+          }`}
+          title="Research Tree"
+        >
+          <Beaker size={20} />
+        </button>
 
         <div className="flex-1" />
 
@@ -257,12 +283,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         >
           <Download size={20} />
         </button>
-
-        {/* Science Bank Display */}
-        <div className="text-[10px] text-emerald-300 font-bold mt-auto mb-1 text-center px-1">
-          SCI
-          <div className="text-slate-300 font-mono">{Math.floor(science)}</div>
-        </div>
       </div>
     </div>
   );

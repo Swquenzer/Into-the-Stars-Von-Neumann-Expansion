@@ -116,4 +116,6 @@ export interface GameState {
   selectedSystemId: string | null;
   logs: string[];
   science: number; // Global science bank
+  purchasedUnlocks: string[]; // IDs of purchased science unlocks
+  maxStatLevelOverrides: Partial<Record<keyof ProbeStats, number>>; // Dynamic max levels from unlocks
 }

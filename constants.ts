@@ -16,6 +16,182 @@ export const RESEARCH_RATE_BASE = 2; // Science per second at scanSpeed=1
 export const SCIENCE_DISTANCE_FACTOR = 0.002; // Multiplier per unit distance from Earth
 export const SCIENCE_BASE_PER_SYSTEM = 200; // Base science even near Earth
 
+// Science Unlocks
+export interface ScienceUnlock {
+  id: string;
+  name: string;
+  description: string;
+  category: "mining" | "propulsion" | "sensors" | "fabrication" | "ai";
+  cost: number;
+  prerequisites?: string[]; // IDs of required unlocks
+  effect: {
+    type: "increase_max_level" | "new_capability" | "efficiency_boost";
+    target?: keyof typeof MAX_STAT_LEVELS;
+    value?: number;
+  };
+}
+
+export const SCIENCE_UNLOCKS: ScienceUnlock[] = [
+  // Tier 1 - Basic Improvements (500-800 science)
+  {
+    id: "mining_advanced",
+    name: "Advanced Drill Matrix",
+    description: "Increase Mining Speed max level to 15 (+5 levels)",
+    category: "mining",
+    cost: 500,
+    effect: { type: "increase_max_level", target: "miningSpeed", value: 5 },
+  },
+  {
+    id: "propulsion_improved",
+    name: "Improved Ion Drive",
+    description: "Increase Flight Speed max level to 15 (+5 levels)",
+    category: "propulsion",
+    cost: 600,
+    effect: { type: "increase_max_level", target: "flightSpeed", value: 5 },
+  },
+  {
+    id: "sensors_enhanced",
+    name: "Enhanced Sensor Suite",
+    description: "Increase Scan Range max to 1500 LY (+500 LY)",
+    category: "sensors",
+    cost: 700,
+    effect: { type: "increase_max_level", target: "scanRange", value: 500 },
+  },
+  {
+    id: "fabrication_faster",
+    name: "Parallel Assembly",
+    description: "Increase Replication Speed max level to 8 (+3 levels)",
+    category: "fabrication",
+    cost: 800,
+    effect: {
+      type: "increase_max_level",
+      target: "replicationSpeed",
+      value: 3,
+    },
+  },
+
+  // Tier 2 - Specialized Upgrades (1200-1800 science)
+  {
+    id: "mining_expert",
+    name: "Quantum Excavation",
+    description: "Increase Mining Speed max level to 20 (+5 more levels)",
+    category: "mining",
+    cost: 1200,
+    prerequisites: ["mining_advanced"],
+    effect: { type: "increase_max_level", target: "miningSpeed", value: 5 },
+  },
+  {
+    id: "propulsion_mastery",
+    name: "Plasma Thruster Arrays",
+    description: "Increase Flight Speed max level to 20 (+5 more levels)",
+    category: "propulsion",
+    cost: 1500,
+    prerequisites: ["propulsion_improved"],
+    effect: { type: "increase_max_level", target: "flightSpeed", value: 5 },
+  },
+  {
+    id: "sensors_deep",
+    name: "Deep Space Telemetry",
+    description: "Increase Scan Range max to 2500 LY (+1000 LY)",
+    category: "sensors",
+    cost: 1800,
+    prerequisites: ["sensors_enhanced"],
+    effect: { type: "increase_max_level", target: "scanRange", value: 1000 },
+  },
+  {
+    id: "sensors_processing",
+    name: "Neural Scan Processing",
+    description: "Increase Scan Speed max to 10x (+5x)",
+    category: "sensors",
+    cost: 1600,
+    prerequisites: ["sensors_enhanced"],
+    effect: { type: "increase_max_level", target: "scanSpeed", value: 5 },
+  },
+  {
+    id: "fabrication_advanced",
+    name: "Molecular Synthesis",
+    description: "Increase Replication Speed max level to 12 (+4 more levels)",
+    category: "fabrication",
+    cost: 1400,
+    prerequisites: ["fabrication_faster"],
+    effect: {
+      type: "increase_max_level",
+      target: "replicationSpeed",
+      value: 4,
+    },
+  },
+
+  // Tier 3 - Elite Mastery (2500-4000 science)
+  {
+    id: "mining_ultimate",
+    name: "Zero-Point Extractors",
+    description: "Increase Mining Speed max level to 30 (+10 more levels)",
+    category: "mining",
+    cost: 2500,
+    prerequisites: ["mining_expert"],
+    effect: { type: "increase_max_level", target: "miningSpeed", value: 10 },
+  },
+  {
+    id: "propulsion_ultimate",
+    name: "Warp Field Generators",
+    description: "Increase Flight Speed max level to 30 (+10 more levels)",
+    category: "propulsion",
+    cost: 3000,
+    prerequisites: ["propulsion_mastery"],
+    effect: { type: "increase_max_level", target: "flightSpeed", value: 10 },
+  },
+  {
+    id: "sensors_ultimate",
+    name: "Quantum Entanglement Array",
+    description: "Increase Scan Range max to 5000 LY (+2500 LY)",
+    category: "sensors",
+    cost: 3500,
+    prerequisites: ["sensors_deep"],
+    effect: { type: "increase_max_level", target: "scanRange", value: 2500 },
+  },
+  {
+    id: "fabrication_ultimate",
+    name: "Von Neumann Perfection",
+    description: "Increase Replication Speed max level to 20 (+8 more levels)",
+    category: "fabrication",
+    cost: 4000,
+    prerequisites: ["fabrication_advanced"],
+    effect: {
+      type: "increase_max_level",
+      target: "replicationSpeed",
+      value: 8,
+    },
+  },
+];
+
+export const CATEGORY_COLORS = {
+  mining: {
+    bg: "bg-yellow-900/30",
+    border: "border-yellow-800",
+    text: "text-yellow-400",
+  },
+  propulsion: {
+    bg: "bg-teal-900/30",
+    border: "border-teal-800",
+    text: "text-teal-400",
+  },
+  sensors: {
+    bg: "bg-indigo-900/30",
+    border: "border-indigo-800",
+    text: "text-indigo-400",
+  },
+  fabrication: {
+    bg: "bg-emerald-900/30",
+    border: "border-emerald-800",
+    text: "text-emerald-400",
+  },
+  ai: {
+    bg: "bg-purple-900/30",
+    border: "border-purple-800",
+    text: "text-purple-400",
+  },
+};
+
 // Base costs for an empty chassis
 export const BASE_COST = {
   Metal: 10,

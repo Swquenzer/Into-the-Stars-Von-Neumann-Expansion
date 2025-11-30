@@ -20,9 +20,10 @@ App.tsx                   # State orchestration & game loop coordination
 ├── handlers/             # User action handlers (take setGameState, return void)
 │   ├── blueprintHandlers.ts    # Designer UI: open/close/save/delete
 │   ├── navigationHandlers.ts   # Launch (point-to-point & deep space)
-│   ├── operationHandlers.ts    # Mine, scan, replicate, stop
+│   ├── operationHandlers.ts    # Mine, scan, replicate, stop, research
 │   ├── probeHandlers.ts         # Rename, autonomy toggle, upgrade, self-destruct
 │   ├── saveHandlers.ts          # Import/export save files
+│   ├── scienceHandlers.ts       # Purchase science unlocks
 │   ├── selectionHandlers.ts    # UI selection state
 │   └── systemHandlers.ts        # System analysis
 ├── logic/                # Pure functions (return updated state + side effects)
@@ -49,7 +50,8 @@ App.tsx
 │       ├── ProbesListPanel.tsx      # Probe list, rename, autonomy toggle
 │       ├── SystemsListPanel.tsx     # System list, selection, analysis
 │       ├── OperationsListPanel.tsx  # Active probe controls (mine/travel/scan)
-│       └── LogsListPanel.tsx        # Event log display
+│       ├── LogsListPanel.tsx        # Event log display
+│       └── SciencePanel.tsx         # Research tree with unlocks
 └── ProbeDesigner.tsx        # Modal for custom blueprint creation
 ```
 
@@ -112,7 +114,19 @@ Probes with `stats.autonomyLevel > 0` execute AI logic in `tick()`:
 - Systems have finite `scienceRemaining` seeded by distance from Earth; consumed via Research.
 - Probes set to `Researching` generate global `GameState.science` at `RESEARCH_RATE_BASE * scanSpeed` per second until the system's `scienceRemaining` is 0.
 - Processor: `processResearchingProbe()` in `logic/gameLoop.ts` returns `scienceDelta` and `systemUpdates`.
-- Handlers/UI: `handleResearch()` in `handlers/operationHandlers.ts`; button in `ProbesListPanel` under Extra Actions; science bank shown in `ControlPanel` sidebar.
+- Handlers/UI: `handleResearch()` in `handlers/operationHandlers.ts`; button in `ProbesListPanel` under Extra Actions; science bank shown in Research Tree panel.
+
+### Science Unlocks
+
+- **Tech Tree**: 14 unlocks across 5 categories (mining, propulsion, sensors, fabrication, ai) defined in `SCIENCE_UNLOCKS` constant.
+- **Three Tiers**: Tier 1 (500-800 sci), Tier 2 (1200-1800 sci), Tier 3 (2500-4000 sci).
+- **Prerequisites**: Higher-tier unlocks require purchasing lower-tier unlocks first (e.g., "Quantum Excavation" requires "Advanced Drill Matrix").
+- **Effect System**: Each unlock increases `maxStatLevelOverrides` in `GameState`, extending caps beyond base `MAX_STAT_LEVELS`.
+  - Example: Mining Speed base max = 10, can reach 15/20/30 with unlocks.
+- **State Tracking**: `GameState.purchasedUnlocks` (string array) and `GameState.maxStatLevelOverrides` (partial record).
+- **Handler**: `handlePurchaseUnlock()` in `handlers/scienceHandlers.ts` validates cost/prerequisites and applies effects.
+- **UI**: `SciencePanel.tsx` displays tech tree with category grouping, progress tracking, and purchase buttons. Accessed via Beaker tab in ControlPanel.
+- **Integration**: Probe upgrade system (`probeHandlers.ts` and `ProbesListPanel.tsx`) uses dynamic max levels from `maxStatLevelOverrides`.
 
 ## Development Patterns
 
@@ -216,6 +230,11 @@ return { ...prev, probes: finalProbes, logs: [...prev.logs, ...newLogs] };
 - **Max Stat Levels** (`MAX_STAT_LEVELS`):
   - Mining Speed: 10, Flight Speed: 10, Replication Speed: 5
   - Scan Range: 1000 LY, Scan Speed: 5x, Autonomy: 2
+  - **Note**: These are base maximums; science unlocks can extend them via `GameState.maxStatLevelOverrides`
+- **Science Unlocks** (`SCIENCE_UNLOCKS`): 14 unlocks in 3 tiers that increase max stat levels
+  - Categories: mining, propulsion, sensors, fabrication, ai
+  - Costs range from 500 to 4000 science
+  - Prerequisites create tech tree progression
 
 ## Common Tasks
 

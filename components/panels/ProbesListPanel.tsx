@@ -43,6 +43,7 @@ export interface ProbesPanelProps {
   systems: SolarSystem[];
   blueprints: ProbeBlueprint[];
   selectedProbeId: string | null;
+  maxStatLevelOverrides: Partial<Record<keyof ProbeStats, number>>;
   onProbeSelect: (id: string) => void;
   onSystemSelect: (id: string) => void;
   onMine: (resource: ResourceType) => void;
@@ -64,6 +65,7 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
   systems,
   blueprints,
   selectedProbeId,
+  maxStatLevelOverrides,
   onProbeSelect,
   onSystemSelect,
   onMine,
@@ -151,7 +153,8 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
     if (!selectedProbe) return null;
     const currentVal = selectedProbe.stats[statKey];
     const config = UPGRADE_COSTS[statKey];
-    const maxLevel = MAX_STAT_LEVELS[statKey];
+    // Use dynamic max level from unlocks, fallback to base max
+    const maxLevel = maxStatLevelOverrides[statKey] ?? MAX_STAT_LEVELS[statKey];
 
     let levelFactor = currentVal;
     if (statKey === "scanRange") levelFactor = currentVal / config.increment;

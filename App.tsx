@@ -53,6 +53,7 @@ import {
   handleSaveBlueprint as saveBlueprint,
   handleDeleteBlueprint as deleteBlueprint,
 } from "./handlers/blueprintHandlers";
+import { handlePurchaseUnlock as purchaseUnlock } from "./handlers/scienceHandlers";
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
@@ -90,6 +91,8 @@ export default function App() {
     selfDestruct(setGameState, gameState, probeId);
   const handleExportSave = () => exportSave(gameState, setGameState);
   const handleImportSave = (file: File) => importSave(file, setGameState);
+  const handlePurchaseUnlock = (unlockId: string) =>
+    purchaseUnlock(setGameState, gameState, unlockId);
 
   // --- Game Loop ---
   const tick = useCallback(() => {
@@ -353,6 +356,7 @@ export default function App() {
         onUpgradeProbe={handleUpgradeProbe}
         onSelfDestruct={handleSelfDestruct}
         onToggleAutonomy={handleToggleAutonomy}
+        onPurchaseUnlock={handlePurchaseUnlock}
         onExportSave={handleExportSave}
         onImportSave={handleImportSave}
       />

@@ -222,5 +222,7 @@ export const createInitialState = (): GameState => {
     selectedSystemId: earth.id,
     logs: ["Mission Control initialized.", "Genesis-1 ready for orders."],
     science: 0,
+    purchasedUnlocks: [],
+    maxStatLevelOverrides: {},
   };
 };

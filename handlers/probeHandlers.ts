@@ -68,7 +68,9 @@ export const handleUpgradeProbe = (
     if (!upgradeConfig) return prev;
 
     const currentVal = probe.stats[statKey];
-    const maxLevel = MAX_STAT_LEVELS[statKey];
+    // Use dynamic max level from unlocks, fallback to base max
+    const maxLevel =
+      prev.maxStatLevelOverrides[statKey] ?? MAX_STAT_LEVELS[statKey];
 
     // Check if already at max level
     if (currentVal >= maxLevel) {

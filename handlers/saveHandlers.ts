@@ -13,6 +13,8 @@ export const handleExportSave = (
   const dataToSave = {
     ...gameState,
     generatedSectors: Array.from(gameState.generatedSectors),
+    purchasedUnlocks: gameState.purchasedUnlocks || [],
+    maxStatLevelOverrides: gameState.maxStatLevelOverrides || {},
     isDesignerOpen: false,
     editingBlueprint: undefined,
   };
@@ -59,6 +61,14 @@ export const handleImportSave = (file: File, setGameState: SetGameState) => {
         loadedData.generatedSectors = new Set(loadedData.generatedSectors);
       } else {
         loadedData.generatedSectors = new Set();
+      }
+
+      // Ensure science unlock fields exist
+      if (!loadedData.purchasedUnlocks) {
+        loadedData.purchasedUnlocks = [];
+      }
+      if (!loadedData.maxStatLevelOverrides) {
+        loadedData.maxStatLevelOverrides = {};
       }
 
       setGameState({
