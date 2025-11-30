@@ -1,0 +1,7 @@
+/* Root-level styles for GitHub Pages deployment */
+/* Keep minimal to avoid conflicts with Tailwind CDN */
+html,
+body,
+#root {
+  height: 100%;
+}
