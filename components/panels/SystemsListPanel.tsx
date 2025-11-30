@@ -151,14 +151,14 @@ export const SystemsListPanel: React.FC<SystemsPanelProps> = ({
                 <div className="flex gap-1 flex-none ml-2">
                   <div className="w-1.5 h-6 bg-slate-800 rounded-sm overflow-hidden flex flex-col justify-end">
                     <div
-                      className="bg-slate-400 w-full"
+                      className="bg-yellow-400 w-full"
                       style={{ height: `${system.resources.Metal}%` }}
                       title="Metal"
                     />
                   </div>
                   <div className="w-1.5 h-6 bg-slate-800 rounded-sm overflow-hidden flex flex-col justify-end">
                     <div
-                      className="bg-red-400 w-full"
+                      className="bg-teal-400 w-full"
                       style={{ height: `${system.resources.Plutonium}%` }}
                       title="Plutonium"
                     />
@@ -212,7 +212,7 @@ export const SystemsListPanel: React.FC<SystemsPanelProps> = ({
                 </div>
                 <div className="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
                   <div
-                    className="bg-slate-400 h-full"
+                    className="bg-yellow-400 h-full"
                     style={{ width: `${selectedSystem.resources.Metal}%` }}
                   />
                 </div>
@@ -222,7 +222,7 @@ export const SystemsListPanel: React.FC<SystemsPanelProps> = ({
                 </div>
                 <div className="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
                   <div
-                    className="bg-red-400 h-full"
+                    className="bg-teal-400 h-full"
                     style={{ width: `${selectedSystem.resources.Plutonium}%` }}
                   />
                 </div>

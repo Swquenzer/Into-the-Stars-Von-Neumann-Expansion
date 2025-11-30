@@ -222,9 +222,9 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                 {probe.state === ProbeState.MiningMetal ||
                 probe.state === ProbeState.MiningPlutonium ? (
                   probe.state === ProbeState.MiningMetal ? (
-                    <Pickaxe size={10} className="text-slate-300" />
+                    <Pickaxe size={10} className="text-yellow-400" />
                   ) : (
-                    <Radiation size={10} className="text-red-400" />
+                    <Radiation size={10} className="text-teal-400" />
                   )
                 ) : probe.state === ProbeState.Traveling ? (
                   <Rocket size={10} />
@@ -352,7 +352,7 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-slate-900 p-2 rounded border border-slate-800">
                   <div className="text-[10px] text-slate-500">METAL</div>
-                  <div className="text-slate-300 font-mono text-sm">
+                  <div className="text-yellow-400 font-mono text-sm">
                     {Math.floor(selectedProbe.inventory.Metal)}
                   </div>
                 </div>
@@ -361,8 +361,8 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                   <div
                     className={`text-sm font-mono ${
                       selectedProbe.inventory.Plutonium < 20
-                        ? "text-red-400"
-                        : "text-slate-300"
+                        ? "text-teal-400"
+                        : "text-teal-400"
                     }`}
                   >
                     {Math.floor(selectedProbe.inventory.Plutonium)}
@@ -419,7 +419,7 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                   title="Engine Thrust Multiplier"
                 >
                   <span className="text-[10px] text-slate-500 flex items-center gap-1">
-                    <Rocket size={10} className="text-red-400" /> THRUST
+                    <Rocket size={10} className="text-teal-400" /> THRUST
                   </span>
                   <span className="text-xs font-mono text-slate-300">
                     {selectedProbe.stats.flightSpeed}x
@@ -494,8 +494,8 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                   <div
                     className={`h-full ${
                       selectedProbe.state === ProbeState.MiningPlutonium
-                        ? "bg-red-500"
-                        : "bg-slate-300"
+                        ? "bg-teal-500"
+                        : "bg-yellow-500"
                     }`}
                     style={{ width: `${selectedProbe.progress}%` }}
                   />
@@ -520,7 +520,7 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                           !canMineMetal ||
                           !isAnalyzed
                         }
-                        className="flex flex-col items-center justify-center p-2 gap-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[10px] font-bold border border-slate-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="flex flex-col items-center justify-center p-2 gap-1 bg-yellow-900/30 hover:bg-yellow-900/50 text-yellow-200 rounded text-[10px] font-bold border border-yellow-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         title={
                           !isAnalyzed
                             ? "Analysis required to identify resources"
@@ -539,7 +539,7 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                           !canMinePlutonium ||
                           !isAnalyzed
                         }
-                        className="flex flex-col items-center justify-center p-2 gap-1 bg-red-900/30 hover:bg-red-900/50 text-red-200 rounded text-[10px] font-bold border border-red-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="flex flex-col items-center justify-center p-2 gap-1 bg-teal-900/30 hover:bg-teal-900/50 text-teal-200 rounded text-[10px] font-bold border border-teal-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         title={
                           !isAnalyzed
                             ? "Analysis required to identify resources"
@@ -774,7 +774,7 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
               {renderUpgradeRow(
                 "flightSpeed",
                 "Flight Speed",
-                <Rocket size={12} className="text-red-400" />
+                <Rocket size={12} className="text-teal-400" />
               )}
               {renderUpgradeRow(
                 "scanRange",

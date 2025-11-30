@@ -55,7 +55,7 @@ export const OperationsListPanel: React.FC<OperationsPanelProps> = ({
               : ` traveling to ${targetName}`;
             progressColor = probe.isSolarSailing
               ? "bg-amber-500"
-              : "bg-red-500";
+              : "bg-teal-500";
             OperationIcon = probe.isSolarSailing ? Wind : Rocket;
           } else if (
             probe.state === ProbeState.MiningMetal &&
@@ -65,7 +65,7 @@ export const OperationsListPanel: React.FC<OperationsPanelProps> = ({
               systems.find((s) => s.id === probe.locationId)?.name || "Unknown";
             details = ` mining Metal at ${locName}`;
             if (probe.stats.autonomyLevel > 0) details = " (Auto) " + details;
-            progressColor = "bg-slate-300";
+            progressColor = "bg-yellow-500";
             OperationIcon = Pickaxe;
           } else if (
             probe.state === ProbeState.MiningPlutonium &&
@@ -75,7 +75,7 @@ export const OperationsListPanel: React.FC<OperationsPanelProps> = ({
               systems.find((s) => s.id === probe.locationId)?.name || "Unknown";
             details = ` mining Plutonium at ${locName}`;
             if (probe.stats.autonomyLevel > 0) details = " (Auto) " + details;
-            progressColor = "bg-red-500";
+            progressColor = "bg-teal-500";
             OperationIcon = Radiation;
           } else if (probe.state === ProbeState.Replicating) {
             let timeString = "";
