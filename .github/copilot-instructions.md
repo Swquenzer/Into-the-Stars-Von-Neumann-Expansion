@@ -6,12 +6,31 @@ This is a React-based 2D space exploration/incremental strategy game where playe
 
 ## Architecture
 
-### Monolithic State Pattern
+### Modular Game Loop Pattern
 
-- **`App.tsx` is the heart**: Contains game loop, state management, and ALL core logic (~700+ lines)
-- Single `GameState` object manages systems, probes, blueprints, logs, UI state
-- Game loop runs on `requestAnimationFrame` with delta-time calculations for frame-independent physics
-- When modifying game logic, work in `App.tsx` - don't try to extract logic elsewhere without explicit request
+- **`App.tsx`** (~350 lines): Orchestrates game loop, manages state, wires handlers to UI components
+- **`GameState`**: Single source of truth for systems, probes, blueprints, logs, UI state
+- **Game loop**: `requestAnimationFrame` with delta-time calculations for frame-independent physics
+- **Separation**: Logic extracted to `logic/`, user actions to `handlers/`, utilities to `utils/`
+
+### Directory Structure
+
+```
+App.tsx                   # State orchestration & game loop coordination
+├── handlers/             # User action handlers (take setGameState, return void)
+│   ├── blueprintHandlers.ts    # Designer UI: open/close/save/delete
+│   ├── navigationHandlers.ts   # Launch (point-to-point & deep space)
+│   ├── operationHandlers.ts    # Mine, scan, replicate, stop
+│   ├── probeHandlers.ts         # Rename, autonomy toggle, upgrade, self-destruct
+│   ├── saveHandlers.ts          # Import/export save files
+│   ├── selectionHandlers.ts    # UI selection state
+│   └── systemHandlers.ts        # System analysis
+├── logic/                # Pure functions (return updated state + side effects)
+│   ├── autonomySystem.ts        # AI decision-making (processAutonomousProbe)
+│   ├── gameLoop.ts              # State processors per ProbeState
+│   └── sectorGeneration.ts     # Procedural universe generation
+└── utils/gameHelpers.ts  # Initial state, coordinate generation, distance calcs
+```
 
 ### Type System (`types.ts`)
 
@@ -20,13 +39,18 @@ This is a React-based 2D space exploration/incremental strategy game where playe
 - Probes track both discrete location (`locationId`) and continuous position (`{ x, y }`)
 - Systems have 3 visibility states: `discovered` (on map), `visited` (probe arrived), `analyzed` (resources revealed)
 
-### Component Structure
+### UI Component Structure
 
 ```
-App.tsx (game loop + state)
-├── StarMap.tsx (canvas rendering, pan/zoom, selection)
-└── ControlPanel.tsx (tabbed UI container)
-    └── panels/ (ProbesListPanel, SystemsListPanel, OperationsListPanel, LogsListPanel)
+App.tsx
+├── StarMap.tsx              # Canvas rendering, pan/zoom, click selection
+├── ControlPanel.tsx         # Tabbed sidebar container
+│   └── panels/
+│       ├── ProbesListPanel.tsx      # Probe list, rename, autonomy toggle
+│       ├── SystemsListPanel.tsx     # System list, selection, analysis
+│       ├── OperationsListPanel.tsx  # Active probe controls (mine/travel/scan)
+│       └── LogsListPanel.tsx        # Event log display
+└── ProbeDesigner.tsx        # Modal for custom blueprint creation
 ```
 
 ## Critical Game Mechanics
@@ -75,25 +99,77 @@ Probes with `stats.autonomyLevel > 0` execute AI logic in `tick()`:
 
 ## Development Patterns
 
-### State Updates
+### Handler Pattern (User Actions)
 
-Always use immutable patterns - spread operators for nested updates:
+Handlers in `handlers/` take `setGameState` and current `gameState`, perform validation, and update state:
 
 ```typescript
-setGameState((prev) => ({
-  ...prev,
-  probes: prev.probes.map((p) => (p.id === targetId ? { ...p, newProp } : p)),
-  systems: systemsChanged ? newSystems : prev.systems, // avoid unnecessary re-renders
-  logs: [...prev.logs, newLog],
-}));
+export const handleLaunch = (
+  setGameState: SetGameState,
+  gameState: GameState,
+  targetSystemId: string
+) => {
+  // Validation
+  const probe = gameState.probes.find(p => p.id === gameState.selectedProbeId);
+  if (!probe || probe.state !== ProbeState.Idle) return;
+  
+  // Immutable state update
+  setGameState(prev => ({
+    ...prev,
+    probes: prev.probes.map(p => p.id === probe.id 
+      ? { ...p, state: ProbeState.Traveling, targetSystemId, progress: 0 }
+      : p
+    ),
+    logs: [...prev.logs, `${probe.name} launched to ${targetSystem.name}`]
+  }));
+};
+```
+
+### Logic Pattern (Game Loop Processing)
+
+Logic functions in `logic/` are pure - they take probe/state, return new probe + side effects:
+
+```typescript
+export interface StateUpdateResult {
+  probe: Probe;              // Updated probe
+  logMessages: string[];     // Messages to add to game log
+  systemUpdates: Array<...>; // Systems to update
+  newProbes: Probe[];        // Newly created probes (replication)
+}
+
+export const processTravelingProbe = (
+  probe: Probe,
+  systems: SolarSystem[],
+  delta: number
+): StateUpdateResult => {
+  // Pure logic - no setGameState calls
+  const updatedProbe = { ...probe, progress: probe.progress + delta };
+  return { probe: updatedProbe, logMessages: [], systemUpdates: [], newProbes: [] };
+};
+```
+
+**Game loop** (`App.tsx`) calls logic functions for each probe state, accumulates results, applies once:
+
+```typescript
+prev.probes.forEach(probe => {
+  if (probe.state === ProbeState.Traveling) {
+    const result = processTravelingProbe(probe, systems, delta);
+    updatedProbe = result.probe;
+    newLogs.push(...result.logMessages);
+    // ... accumulate systemUpdates
+  }
+});
+// Single state update at end
+return { ...prev, probes: finalProbes, logs: [...prev.logs, ...newLogs] };
 ```
 
 ### Adding New Probe States
 
 1. Add enum value to `ProbeState` in `types.ts`
-2. Add handler in `tick()` game loop in `App.tsx`
-3. Add UI controls in relevant panel component
-4. Update progress/buffer logic if state has duration
+2. Create processor function in `logic/gameLoop.ts` (returns `StateUpdateResult`)
+3. Call processor in `App.tsx` game loop `tick()` function
+4. Add UI controls in `OperationsListPanel.tsx` or relevant panel
+5. Add handler in `handlers/operationHandlers.ts` if user-initiated
 
 ### Gemini Integration
 
@@ -113,17 +189,20 @@ setGameState((prev) => ({
 
 ### Adding New Game Features
 
-1. Add types to `types.ts` if needed
-2. Implement logic in `App.tsx` `tick()` or create handler function
-3. Add UI controls in appropriate panel component
-4. Update `GameState` structure if persisting new data
-5. Test with save/export to ensure JSON serializability
+1. **Types**: Add/modify interfaces in `types.ts`
+2. **Logic**: Create pure processor in `logic/gameLoop.ts` (returns `StateUpdateResult`)
+3. **Handler**: Add user action handler in `handlers/` (calls `setGameState`)
+4. **Game loop**: Wire processor into `App.tsx` `tick()` function
+5. **UI**: Add controls to relevant component in `components/panels/`
+6. **State**: Update `GameState` interface if adding persistent data
+7. **Serialization**: Test save/export - ensure no functions/Sets (convert to arrays)
 
 ### Performance Considerations
 
 - Game loop is O(n) for probes - tested stable up to ~100 probes
 - `systems` array grows unbounded with exploration - consider virtualization if 2000+ systems
-- Avoid `semantic_search` on large generated arrays in `tick()` - use direct lookups
+- Avoid expensive lookups in `tick()` - use Maps for O(1) access if searching frequently
+- Conditional state updates: Only replace arrays/objects if changed to prevent re-renders
 
 ### Running & Building
 
@@ -138,14 +217,30 @@ npm run build        # Production build
 
 ## Anti-Patterns to Avoid
 
-- ❌ Don't call Gemini API in game loop (only on user actions)
-- ❌ Don't mutate state directly - always use `setGameState`
+- ❌ Don't call `setGameState` in `logic/` functions - they must be pure (return updates)
+- ❌ Don't call Gemini API in game loop (only in handlers on user actions)
+- ❌ Don't mutate state directly - always use immutable patterns with spread operators
 - ❌ Don't forget to update `generatedSectors` when adding sector logic
-- ❌ Don't add new probe logic without considering autonomy system interactions
+- ❌ Don't add new probe behavior without considering autonomy system interactions
 - ❌ Don't use `&&` in PowerShell commands (use `;` for chaining)
+- ❌ Don't mix handler patterns - handlers modify state, logic returns updates
 
 ## Save System
 
 - Export: Serializes entire `GameState` to JSON (converts Set to Array)
 - Import: Deserializes and validates, reconstructs Sets
 - When adding new state properties, ensure they're serializable or excluded from save
+
+## Maintaining These Instructions
+
+**After making significant code changes, always review and update this file.**
+
+Changes that require documentation updates:
+- New architectural patterns or refactoring (handlers, logic, components)
+- New game mechanics or probe states
+- Changes to the game loop or state management patterns
+- New development workflows or build processes
+- New external dependencies or API integrations
+- Changes to directory structure or file organization
+
+Keep instructions actionable and specific to THIS codebase - avoid generic advice.
