@@ -1,6 +1,6 @@
 import React from "react";
 import { GameState, Relay, ProbeState, ResourceType } from "../types";
-import { RELAY_DEPLOY_COST_METAL } from "../constants";
+import { RELAY_DEPLOY_COST_METAL, SCIENCE_UNLOCK_IDS } from "../constants";
 
 export type SetGameState = React.Dispatch<React.SetStateAction<GameState>>;
 
@@ -13,7 +13,9 @@ export const handleDeployRelay = (
   );
   if (!selectedProbe) return;
 
-  const hasUnlock = gameState.purchasedUnlocks.includes("relay_network");
+  const hasUnlock = gameState.purchasedUnlocks.includes(
+    SCIENCE_UNLOCK_IDS.RELAY_NETWORK
+  );
   if (!hasUnlock) return;
 
   if (selectedProbe.state !== ProbeState.Idle) return;

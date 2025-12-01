@@ -18,14 +18,38 @@ export const SCIENCE_BASE_PER_SYSTEM = 20; // Base science even near Earth
 // Relay Network
 export const RELAY_DEPLOY_COST_METAL = 400; // Metal required to deploy a relay
 
-// Science Unlocks
+// Science Unlocks - Type-safe IDs
+export const SCIENCE_UNLOCK_IDS = {
+  // Tier 1
+  MINING_ADVANCED: "mining_advanced",
+  PROPULSION_IMPROVED: "propulsion_improved",
+  SENSORS_ENHANCED: "sensors_enhanced",
+  FABRICATION_FASTER: "fabrication_faster",
+  // Tier 2
+  MINING_EXPERT: "mining_expert",
+  PROPULSION_MASTERY: "propulsion_mastery",
+  SENSORS_DEEP: "sensors_deep",
+  SENSORS_PROCESSING: "sensors_processing",
+  FABRICATION_ADVANCED: "fabrication_advanced",
+  // Tier 3
+  MINING_ULTIMATE: "mining_ultimate",
+  PROPULSION_ULTIMATE: "propulsion_ultimate",
+  SENSORS_ULTIMATE: "sensors_ultimate",
+  FABRICATION_ULTIMATE: "fabrication_ultimate",
+  // Special
+  RELAY_NETWORK: "relay_network",
+} as const;
+
+export type ScienceUnlockId =
+  (typeof SCIENCE_UNLOCK_IDS)[keyof typeof SCIENCE_UNLOCK_IDS];
+
 export interface ScienceUnlock {
-  id: string;
+  id: ScienceUnlockId;
   name: string;
   description: string;
   category: "mining" | "propulsion" | "sensors" | "fabrication" | "ai";
   cost: number;
-  prerequisites?: string[]; // IDs of required unlocks
+  prerequisites?: ScienceUnlockId[]; // Type-safe IDs
   effect: {
     type: "increase_max_level" | "new_capability" | "efficiency_boost";
     target?: keyof typeof MAX_STAT_LEVELS;
@@ -36,7 +60,7 @@ export interface ScienceUnlock {
 export const SCIENCE_UNLOCKS: ScienceUnlock[] = [
   // Tier 1 - Basic Improvements (500-800 science)
   {
-    id: "mining_advanced",
+    id: SCIENCE_UNLOCK_IDS.MINING_ADVANCED,
     name: "Advanced Drill Matrix",
     description: "Increase Mining Speed max level to 15 (+5 levels)",
     category: "mining",
@@ -44,7 +68,7 @@ export const SCIENCE_UNLOCKS: ScienceUnlock[] = [
     effect: { type: "increase_max_level", target: "miningSpeed", value: 5 },
   },
   {
-    id: "propulsion_improved",
+    id: SCIENCE_UNLOCK_IDS.PROPULSION_IMPROVED,
     name: "Improved Ion Drive",
     description: "Increase Flight Speed max level to 15 (+5 levels)",
     category: "propulsion",
@@ -52,7 +76,7 @@ export const SCIENCE_UNLOCKS: ScienceUnlock[] = [
     effect: { type: "increase_max_level", target: "flightSpeed", value: 5 },
   },
   {
-    id: "sensors_enhanced",
+    id: SCIENCE_UNLOCK_IDS.SENSORS_ENHANCED,
     name: "Enhanced Sensor Suite",
     description: "Increase Scan Range max to 1500 LY (+500 LY)",
     category: "sensors",
@@ -60,7 +84,7 @@ export const SCIENCE_UNLOCKS: ScienceUnlock[] = [
     effect: { type: "increase_max_level", target: "scanRange", value: 500 },
   },
   {
-    id: "fabrication_faster",
+    id: SCIENCE_UNLOCK_IDS.FABRICATION_FASTER,
     name: "Parallel Assembly",
     description: "Increase Replication Speed max level to 8 (+3 levels)",
     category: "fabrication",
@@ -74,48 +98,48 @@ export const SCIENCE_UNLOCKS: ScienceUnlock[] = [
 
   // Tier 2 - Specialized Upgrades (1200-1800 science)
   {
-    id: "mining_expert",
+    id: SCIENCE_UNLOCK_IDS.MINING_EXPERT,
     name: "Quantum Excavation",
     description: "Increase Mining Speed max level to 20 (+5 more levels)",
     category: "mining",
     cost: 1200,
-    prerequisites: ["mining_advanced"],
+    prerequisites: [SCIENCE_UNLOCK_IDS.MINING_ADVANCED],
     effect: { type: "increase_max_level", target: "miningSpeed", value: 5 },
   },
   {
-    id: "propulsion_mastery",
+    id: SCIENCE_UNLOCK_IDS.PROPULSION_MASTERY,
     name: "Plasma Thruster Arrays",
     description: "Increase Flight Speed max level to 20 (+5 more levels)",
     category: "propulsion",
     cost: 1500,
-    prerequisites: ["propulsion_improved"],
+    prerequisites: [SCIENCE_UNLOCK_IDS.PROPULSION_IMPROVED],
     effect: { type: "increase_max_level", target: "flightSpeed", value: 5 },
   },
   {
-    id: "sensors_deep",
+    id: SCIENCE_UNLOCK_IDS.SENSORS_DEEP,
     name: "Deep Space Telemetry",
     description: "Increase Scan Range max to 2500 LY (+1000 LY)",
     category: "sensors",
     cost: 1800,
-    prerequisites: ["sensors_enhanced"],
+    prerequisites: [SCIENCE_UNLOCK_IDS.SENSORS_ENHANCED],
     effect: { type: "increase_max_level", target: "scanRange", value: 1000 },
   },
   {
-    id: "sensors_processing",
+    id: SCIENCE_UNLOCK_IDS.SENSORS_PROCESSING,
     name: "Neural Scan Processing",
     description: "Increase Scan Speed max to 10x (+5x)",
     category: "sensors",
     cost: 1600,
-    prerequisites: ["sensors_enhanced"],
+    prerequisites: [SCIENCE_UNLOCK_IDS.SENSORS_ENHANCED],
     effect: { type: "increase_max_level", target: "scanSpeed", value: 5 },
   },
   {
-    id: "fabrication_advanced",
+    id: SCIENCE_UNLOCK_IDS.FABRICATION_ADVANCED,
     name: "Molecular Synthesis",
     description: "Increase Replication Speed max level to 12 (+4 more levels)",
     category: "fabrication",
     cost: 1400,
-    prerequisites: ["fabrication_faster"],
+    prerequisites: [SCIENCE_UNLOCK_IDS.FABRICATION_FASTER],
     effect: {
       type: "increase_max_level",
       target: "replicationSpeed",
@@ -125,39 +149,39 @@ export const SCIENCE_UNLOCKS: ScienceUnlock[] = [
 
   // Tier 3 - Elite Mastery (2500-4000 science)
   {
-    id: "mining_ultimate",
+    id: SCIENCE_UNLOCK_IDS.MINING_ULTIMATE,
     name: "Zero-Point Extractors",
     description: "Increase Mining Speed max level to 30 (+10 more levels)",
     category: "mining",
     cost: 2500,
-    prerequisites: ["mining_expert"],
+    prerequisites: [SCIENCE_UNLOCK_IDS.MINING_EXPERT],
     effect: { type: "increase_max_level", target: "miningSpeed", value: 10 },
   },
   {
-    id: "propulsion_ultimate",
+    id: SCIENCE_UNLOCK_IDS.PROPULSION_ULTIMATE,
     name: "Warp Field Generators",
     description: "Increase Flight Speed max level to 30 (+10 more levels)",
     category: "propulsion",
     cost: 3000,
-    prerequisites: ["propulsion_mastery"],
+    prerequisites: [SCIENCE_UNLOCK_IDS.PROPULSION_MASTERY],
     effect: { type: "increase_max_level", target: "flightSpeed", value: 10 },
   },
   {
-    id: "sensors_ultimate",
+    id: SCIENCE_UNLOCK_IDS.SENSORS_ULTIMATE,
     name: "Quantum Entanglement Array",
     description: "Increase Scan Range max to 5000 LY (+2500 LY)",
     category: "sensors",
     cost: 3500,
-    prerequisites: ["sensors_deep"],
+    prerequisites: [SCIENCE_UNLOCK_IDS.SENSORS_DEEP],
     effect: { type: "increase_max_level", target: "scanRange", value: 2500 },
   },
   {
-    id: "fabrication_ultimate",
+    id: SCIENCE_UNLOCK_IDS.FABRICATION_ULTIMATE,
     name: "Von Neumann Perfection",
     description: "Increase Replication Speed max level to 20 (+8 more levels)",
     category: "fabrication",
     cost: 4000,
-    prerequisites: ["fabrication_advanced"],
+    prerequisites: [SCIENCE_UNLOCK_IDS.FABRICATION_ADVANCED],
     effect: {
       type: "increase_max_level",
       target: "replicationSpeed",
@@ -167,7 +191,7 @@ export const SCIENCE_UNLOCKS: ScienceUnlock[] = [
 
   // Special Capability Unlocks
   {
-    id: "relay_network",
+    id: SCIENCE_UNLOCK_IDS.RELAY_NETWORK,
     name: "Quantum Relay Network",
     description:
       "Unlock ability to deploy relay stations for long-range communication",

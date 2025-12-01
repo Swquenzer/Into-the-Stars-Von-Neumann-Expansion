@@ -13,6 +13,7 @@ import {
   UPGRADE_COSTS,
   MAX_STAT_LEVELS,
   RELAY_DEPLOY_COST_METAL,
+  SCIENCE_UNLOCK_IDS,
 } from "../../constants";
 import {
   Rocket,
@@ -137,7 +138,7 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
     ? relays.find((r) => r.systemId === currentLocation.id)
     : null;
   const canDeployRelay =
-    purchasedUnlocks.includes("relay_network") &&
+    purchasedUnlocks.includes(SCIENCE_UNLOCK_IDS.RELAY_NETWORK) &&
     selectedProbe?.state === ProbeState.Idle &&
     !!selectedProbe?.locationId &&
     !existingRelayInSystem &&
@@ -701,7 +702,9 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                         disabled={!canDeployRelay}
                         className="flex items-center justify-center gap-1 bg-slate-800 hover:bg-slate-700 text-purple-300 py-1.5 rounded text-[10px] font-bold border border-slate-700 transition-colors disabled:opacity-30"
                         title={
-                          !purchasedUnlocks.includes("relay_network")
+                          !purchasedUnlocks.includes(
+                            SCIENCE_UNLOCK_IDS.RELAY_NETWORK
+                          )
                             ? "Unlock required: Quantum Relay Network"
                             : !selectedProbe?.locationId
                             ? "Must be docked at a system"
