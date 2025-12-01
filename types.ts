@@ -28,6 +28,25 @@ export enum ProbeModel {
   VonNeumannPrime = "Von Neumann Prime", // Fast replication, best sensors
 }
 
+export enum AIBehavior {
+  None = "none",
+  FocusMining = "focus_mining",
+  FocusExploring = "focus_exploring",
+  FocusScience = "focus_science",
+}
+
+export interface AIModule {
+  id: string;
+  type: AIBehavior;
+  installedAt: number;
+}
+
+export interface AIBehaviorSettings {
+  autoRefuel?: boolean;
+  returnWhenFull?: boolean;
+  autoDeployRelays?: boolean;
+}
+
 export interface Coordinates {
   x: number;
   y: number;
@@ -103,6 +122,10 @@ export interface Probe {
   isSolarSailing?: boolean; // If true, traveling at reduced speed due to lack of fuel
   isAutonomyEnabled?: boolean; // User toggle for AI behavior
   researchBuffer?: number; // Accumulator for science collection
+  aiBehavior?: AIBehavior; // Selected AI behavior mode
+  aiModules: AIModule[]; // Installed behavior modules
+  aiSettings?: AIBehaviorSettings; // Behavior-specific settings
+  aiDecisionLog?: string[]; // Recent AI decisions (last 5)
 }
 
 export interface GameState {
@@ -119,6 +142,7 @@ export interface GameState {
   purchasedUnlocks: string[]; // IDs of purchased science unlocks
   maxStatLevelOverrides: Partial<Record<keyof ProbeStats, number>>; // Dynamic max levels from unlocks
   relays: Relay[]; // Deployed relay stations
+  unlockedAIBehaviors: AIBehavior[]; // Account-wide unlocked behaviors
 }
 
 export interface Relay {

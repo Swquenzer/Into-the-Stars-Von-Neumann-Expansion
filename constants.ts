@@ -1,4 +1,4 @@
-import { ProbeModel, ProbeBlueprint } from "./types";
+import { ProbeModel, ProbeBlueprint, AIBehavior } from "./types";
 
 export const UNIVERSE_WIDTH = 2000;
 export const UNIVERSE_HEIGHT = 2000;
@@ -38,6 +38,11 @@ export const SCIENCE_UNLOCK_IDS = {
   FABRICATION_ULTIMATE: "fabrication_ultimate",
   // Special
   RELAY_NETWORK: "relay_network",
+  // AI Behaviors
+  AI_BEHAVIOR_PROTOCOLS: "ai_behavior_protocols",
+  FOCUS_MINING_MODULE: "focus_mining_module",
+  FOCUS_EXPLORING_MODULE: "focus_exploring_module",
+  FOCUS_SCIENCE_MODULE: "focus_science_module",
 } as const;
 
 export type ScienceUnlockId =
@@ -197,6 +202,47 @@ export const SCIENCE_UNLOCKS: ScienceUnlock[] = [
       "Unlock ability to deploy relay stations for long-range communication",
     category: "sensors",
     cost: 400,
+    effect: { type: "new_capability", value: 0 },
+  },
+
+  // AI Behavior Unlocks
+  {
+    id: SCIENCE_UNLOCK_IDS.AI_BEHAVIOR_PROTOCOLS,
+    name: "AI Behavior Protocols",
+    description:
+      "Unlock the ability to install specialized behavior modules on probes",
+    category: "ai",
+    cost: 1000,
+    effect: { type: "new_capability", value: 0 },
+  },
+  {
+    id: SCIENCE_UNLOCK_IDS.FOCUS_MINING_MODULE,
+    name: "Focus Mining Module",
+    description:
+      "Allows probes to autonomously seek and mine resource-rich systems",
+    category: "ai",
+    cost: 1500,
+    prerequisites: [SCIENCE_UNLOCK_IDS.AI_BEHAVIOR_PROTOCOLS],
+    effect: { type: "new_capability", value: 0 },
+  },
+  {
+    id: SCIENCE_UNLOCK_IDS.FOCUS_EXPLORING_MODULE,
+    name: "Focus Exploring Module",
+    description:
+      "Allows probes to autonomously explore and map uncharted space",
+    category: "ai",
+    cost: 1500,
+    prerequisites: [SCIENCE_UNLOCK_IDS.AI_BEHAVIOR_PROTOCOLS],
+    effect: { type: "new_capability", value: 0 },
+  },
+  {
+    id: SCIENCE_UNLOCK_IDS.FOCUS_SCIENCE_MODULE,
+    name: "Focus Science Module",
+    description:
+      "Allows probes to autonomously collect science and deploy relays",
+    category: "ai",
+    cost: 2000,
+    prerequisites: [SCIENCE_UNLOCK_IDS.FOCUS_EXPLORING_MODULE],
     effect: { type: "new_capability", value: 0 },
   },
 ];
@@ -389,4 +435,11 @@ export const PROBE_COSTS: Record<
   [ProbeModel.MarkII]: { Metal: 150, Plutonium: 80, time: 90000 },
   [ProbeModel.MarkIII]: { Metal: 200, Plutonium: 50, time: 120000 },
   [ProbeModel.VonNeumannPrime]: { Metal: 500, Plutonium: 300, time: 180000 },
+};
+
+// AI Module Installation Costs
+export const AI_MODULE_COSTS = {
+  [AIBehavior.FocusMining]: { Metal: 150, Plutonium: 0 },
+  [AIBehavior.FocusExploring]: { Metal: 100, Plutonium: 50 },
+  [AIBehavior.FocusScience]: { Metal: 200, Plutonium: 100 },
 };

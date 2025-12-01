@@ -58,9 +58,21 @@ import {
   handleDeployRelay as deployRelay,
   handleRemoveRelay as removeRelay,
 } from "./handlers/relayHandlers";
+import {
+  handleSetAIBehavior as setAIBehavior,
+  handleInstallAIModule as installAIModule,
+  handleUninstallAIModule as uninstallAIModule,
+} from "./handlers/aiBehaviorHandlers";
+
+import { AdminPanel } from "./components/AdminPanel";
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
+  const [adminMode, setAdminMode] = useState(false);
+  // --- Admin Handler ---
+  const handleSetScience = (value: number) => {
+    setGameState((prev) => ({ ...prev, science: value }));
+  };
   const lastTickRef = useRef<number>(Date.now());
   const rafRef = useRef<number>(0);
 
@@ -98,6 +110,12 @@ export default function App() {
   const handlePurchaseUnlock = (unlockId: string) =>
     purchaseUnlock(setGameState, gameState, unlockId);
   const handleDeployRelay = () => deployRelay(setGameState, gameState);
+  const handleSetAIBehavior = (probeId: string, behavior: any) =>
+    setAIBehavior(setGameState, gameState, probeId, behavior);
+  const handleInstallAIModule = (probeId: string, behavior: any) =>
+    installAIModule(setGameState, gameState, probeId, behavior);
+  const handleUninstallAIModule = (probeId: string, behavior: any) =>
+    uninstallAIModule(setGameState, gameState, probeId, behavior);
   const handleRemoveRelay = (relayId: string) =>
     removeRelay(setGameState, gameState, relayId);
 
@@ -134,11 +152,15 @@ export default function App() {
           probe.isAutonomyEnabled &&
           probe.state === ProbeState.Idle
         ) {
+          const hasRelayUnlock =
+            prev.purchasedUnlocks?.includes("quantum_relay_network") || false;
           const autonomyResult = processAutonomousProbe(
             updatedProbe,
             newSystems,
             colonizedSystemIds,
-            now
+            now,
+            prev.relays || [],
+            hasRelayUnlock
           );
           updatedProbe = autonomyResult.probe;
 
@@ -338,6 +360,11 @@ export default function App() {
 
   return (
     <div className="flex w-screen h-screen bg-slate-950 text-slate-200 overflow-hidden font-sans">
+      {/* AdminPanel only, no top-right toggle */}
+      {adminMode && (
+        <AdminPanel gameState={gameState} onSetScience={handleSetScience} />
+      )}
+
       <div className="flex-1 relative">
         <StarMap
           gameState={gameState}
@@ -366,6 +393,9 @@ export default function App() {
         onPurchaseUnlock={handlePurchaseUnlock}
         onDeployRelay={handleDeployRelay}
         onRemoveRelay={handleRemoveRelay}
+        onSetAIBehavior={handleSetAIBehavior}
+        onInstallAIModule={handleInstallAIModule}
+        onUninstallAIModule={handleUninstallAIModule}
         onExportSave={handleExportSave}
         onImportSave={handleImportSave}
       />

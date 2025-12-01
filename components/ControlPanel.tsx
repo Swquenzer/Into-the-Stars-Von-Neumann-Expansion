@@ -44,6 +44,9 @@ interface ControlPanelProps {
   onPurchaseUnlock: (unlockId: string) => void;
   onDeployRelay: () => void;
   onRemoveRelay: (relayId: string) => void;
+  onSetAIBehavior: (probeId: string, behavior: any) => void;
+  onInstallAIModule: (probeId: string, behavior: any) => void;
+  onUninstallAIModule: (probeId: string, behavior: any) => void;
   onExportSave: () => void;
   onImportSave: (file: File) => void;
 }
@@ -69,6 +72,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onPurchaseUnlock,
   onDeployRelay,
   onRemoveRelay,
+  onSetAIBehavior,
+  onInstallAIModule,
+  onUninstallAIModule,
   onExportSave,
   onImportSave,
 }) => {
@@ -148,6 +154,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               onSelfDestruct={onSelfDestruct}
               onToggleAutonomy={onToggleAutonomy}
               onDeployRelay={onDeployRelay}
+              onSetAIBehavior={onSetAIBehavior}
+              onInstallAIModule={onInstallAIModule}
+              onUninstallAIModule={onUninstallAIModule}
             />
           </div>
         )}

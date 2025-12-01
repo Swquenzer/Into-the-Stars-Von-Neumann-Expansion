@@ -1,6 +1,10 @@
 import React from "react";
-import { GameState } from "../types";
-import { SCIENCE_UNLOCKS, MAX_STAT_LEVELS } from "../constants";
+import { GameState, AIBehavior } from "../types";
+import {
+  SCIENCE_UNLOCKS,
+  MAX_STAT_LEVELS,
+  SCIENCE_UNLOCK_IDS,
+} from "../constants";
 
 export type SetGameState = React.Dispatch<React.SetStateAction<GameState>>;
 
@@ -57,11 +61,22 @@ export const handlePurchaseUnlock = (
         currentMax + (unlock.effect.value || 0);
     }
 
+    // Handle AI behavior module unlocks
+    let newUnlockedBehaviors = [...(prev.unlockedAIBehaviors || [])];
+    if (unlockId === SCIENCE_UNLOCK_IDS.FOCUS_MINING_MODULE) {
+      newUnlockedBehaviors.push(AIBehavior.FocusMining);
+    } else if (unlockId === SCIENCE_UNLOCK_IDS.FOCUS_EXPLORING_MODULE) {
+      newUnlockedBehaviors.push(AIBehavior.FocusExploring);
+    } else if (unlockId === SCIENCE_UNLOCK_IDS.FOCUS_SCIENCE_MODULE) {
+      newUnlockedBehaviors.push(AIBehavior.FocusScience);
+    }
+
     return {
       ...prev,
       science: prev.science - unlock.cost,
       purchasedUnlocks: [...prev.purchasedUnlocks, unlockId],
       maxStatLevelOverrides: newMaxStatOverrides,
+      unlockedAIBehaviors: newUnlockedBehaviors,
       logs: [...prev.logs, `Research breakthrough: ${unlock.name} unlocked!`],
     };
   });

@@ -209,6 +209,8 @@ export const createInitialState = (): GameState => {
     researchBuffer: 0,
     isAutonomyEnabled: true, // Default to true for consistency, though it starts with level 0
     lastDiversionCheck: Date.now(),
+    aiModules: [],
+    aiDecisionLog: [],
   };
 
   return {
@@ -225,5 +227,6 @@ export const createInitialState = (): GameState => {
     purchasedUnlocks: [],
     maxStatLevelOverrides: {},
     relays: [],
+    unlockedAIBehaviors: [],
   };
 };

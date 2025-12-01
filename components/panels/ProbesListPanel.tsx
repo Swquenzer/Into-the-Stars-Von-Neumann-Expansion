@@ -7,6 +7,7 @@ import {
   ProbeBlueprint,
   ProbeStats,
   Relay,
+  AIBehavior,
 } from "../../types";
 import {
   TURN_COST_PER_DEGREE,
@@ -14,6 +15,7 @@ import {
   MAX_STAT_LEVELS,
   RELAY_DEPLOY_COST_METAL,
   SCIENCE_UNLOCK_IDS,
+  AI_MODULE_COSTS,
 } from "../../constants";
 import {
   Rocket,
@@ -39,6 +41,9 @@ import {
   Clock,
   Activity,
   Power,
+  Cpu,
+  Download,
+  XCircle,
 } from "lucide-react";
 
 export interface ProbesPanelProps {
@@ -64,6 +69,9 @@ export interface ProbesPanelProps {
   onSelfDestruct: (probeId: string) => void;
   onToggleAutonomy: (probeId: string) => void;
   onDeployRelay: () => void;
+  onSetAIBehavior: (probeId: string, behavior: any) => void;
+  onInstallAIModule: (probeId: string, behavior: any) => void;
+  onUninstallAIModule: (probeId: string, behavior: any) => void;
 }
 
 export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
@@ -89,6 +97,9 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
   onSelfDestruct,
   onToggleAutonomy,
   onDeployRelay,
+  onSetAIBehavior,
+  onInstallAIModule,
+  onUninstallAIModule,
 }) => {
   const selectedProbe = probes.find((p) => p.id === selectedProbeId);
   const [isEditing, setIsEditing] = useState(false);
@@ -439,6 +450,165 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                     <Power size={10} />{" "}
                     {selectedProbe.isAutonomyEnabled ? "ON" : "OFF"}
                   </button>
+                </div>
+              )}
+
+              {/* AI Behavior Control (Level 2 Autonomy Only) */}
+              {selectedProbe.stats.autonomyLevel === 2 && (
+                <div className="bg-purple-950/30 border border-purple-900 rounded p-2 space-y-2">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-[10px] font-bold text-purple-300 flex items-center gap-1">
+                      <Cpu size={10} /> AI BEHAVIOR MODE
+                    </span>
+                  </div>
+
+                  {/* Behavior Selection */}
+                  <div className="space-y-1">
+                    <button
+                      onClick={() =>
+                        onSetAIBehavior(selectedProbe.id, AIBehavior.None)
+                      }
+                      className={`w-full text-left px-2 py-1 rounded text-[10px] border transition-colors ${
+                        selectedProbe.aiBehavior === AIBehavior.None ||
+                        !selectedProbe.aiBehavior
+                          ? "bg-purple-800 border-purple-600 text-white"
+                          : "bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800"
+                      }`}
+                    >
+                      Default (Mining)
+                    </button>
+                    {[
+                      AIBehavior.FocusMining,
+                      AIBehavior.FocusExploring,
+                      AIBehavior.FocusScience,
+                    ].map((behavior) => {
+                      const hasModule = selectedProbe.aiModules?.some(
+                        (m) => m.type === behavior
+                      );
+                      const isActive = selectedProbe.aiBehavior === behavior;
+                      return (
+                        <button
+                          key={behavior}
+                          onClick={() =>
+                            hasModule &&
+                            onSetAIBehavior(selectedProbe.id, behavior)
+                          }
+                          disabled={!hasModule}
+                          className={`w-full text-left px-2 py-1 rounded text-[10px] border transition-colors ${
+                            isActive
+                              ? "bg-purple-800 border-purple-600 text-white"
+                              : hasModule
+                              ? "bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800"
+                              : "bg-slate-950 border-slate-800 text-slate-600 cursor-not-allowed"
+                          }`}
+                        >
+                          {behavior}
+                          {!hasModule && " (Not Installed)"}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Module Management */}
+                  <div className="text-[9px] text-purple-400 font-bold mt-2 mb-1">
+                    INSTALLED MODULES
+                  </div>
+                  {selectedProbe.aiModules &&
+                  selectedProbe.aiModules.length > 0 ? (
+                    <div className="space-y-1">
+                      {selectedProbe.aiModules.map((module) => (
+                        <div
+                          key={module.id}
+                          className="flex justify-between items-center bg-slate-900 border border-slate-700 rounded px-2 py-1"
+                        >
+                          <span className="text-[10px] text-slate-300">
+                            {module.type}
+                          </span>
+                          <button
+                            onClick={() =>
+                              onUninstallAIModule(selectedProbe.id, module.type)
+                            }
+                            className="text-[9px] text-red-400 hover:text-red-300 flex items-center gap-1"
+                          >
+                            <XCircle size={10} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-[9px] text-slate-600 italic">
+                      No modules installed
+                    </div>
+                  )}
+
+                  {/* Available Modules */}
+                  <div className="text-[9px] text-purple-400 font-bold mt-2 mb-1">
+                    AVAILABLE MODULES
+                  </div>
+                  <div className="space-y-1">
+                    {[
+                      AIBehavior.FocusMining,
+                      AIBehavior.FocusExploring,
+                      AIBehavior.FocusScience,
+                    ].map((behavior) => {
+                      const hasModule = selectedProbe.aiModules?.some(
+                        (m) => m.type === behavior
+                      );
+                      if (hasModule) return null;
+
+                      const cost = AI_MODULE_COSTS[behavior];
+                      const canAfford =
+                        cost &&
+                        selectedProbe.inventory.Metal >= cost.Metal &&
+                        selectedProbe.inventory.Plutonium >= cost.Plutonium;
+
+                      return (
+                        <button
+                          key={behavior}
+                          onClick={() =>
+                            canAfford &&
+                            onInstallAIModule(selectedProbe.id, behavior)
+                          }
+                          disabled={!canAfford}
+                          className={`w-full flex justify-between items-center px-2 py-1 rounded text-[10px] border ${
+                            canAfford
+                              ? "bg-purple-900/50 border-purple-800 text-purple-300 hover:bg-purple-800"
+                              : "bg-slate-950 border-slate-800 text-slate-600 cursor-not-allowed"
+                          }`}
+                        >
+                          <span className="flex items-center gap-1">
+                            <Download size={10} /> {behavior}
+                          </span>
+                          <span className="text-[9px]">
+                            {cost?.Metal}M {cost?.Plutonium}P
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* AI Decision Log */}
+                  {selectedProbe.aiDecisionLog &&
+                    selectedProbe.aiDecisionLog.length > 0 && (
+                      <>
+                        <div className="text-[9px] text-purple-400 font-bold mt-2 mb-1">
+                          DECISION LOG
+                        </div>
+                        <div className="bg-slate-950 border border-slate-800 rounded p-1.5 max-h-24 overflow-y-auto">
+                          {selectedProbe.aiDecisionLog
+                            .slice()
+                            .reverse()
+                            .map((decision, idx) => (
+                              <div
+                                key={idx}
+                                className="text-[9px] text-slate-500 leading-tight mb-0.5"
+                              >
+                                • {decision}
+                              </div>
+                            ))}
+                        </div>
+                      </>
+                    )}
                 </div>
               )}
 
