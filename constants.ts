@@ -2,7 +2,6 @@ import { ProbeModel, ProbeBlueprint } from "./types";
 
 export const UNIVERSE_WIDTH = 2000;
 export const UNIVERSE_HEIGHT = 2000;
-export const SYSTEM_COUNT = 30;
 export const SECTOR_SIZE = 1000; // Dimensions of a procedural sector
 
 export const FUEL_CONSUMPTION_RATE = 0.2; // Plutonium per unit distance (Increased for balance)
@@ -14,7 +13,7 @@ export const SOLAR_SAIL_SPEED_MULTIPLIER = 0.05; // Speed multiplier when out of
 // Research & Science
 export const RESEARCH_RATE_BASE = 2; // Science per second at scanSpeed=1
 export const SCIENCE_DISTANCE_FACTOR = 0.002; // Multiplier per unit distance from Earth
-export const SCIENCE_BASE_PER_SYSTEM = 200; // Base science even near Earth
+export const SCIENCE_BASE_PER_SYSTEM = 20; // Base science even near Earth
 
 // Relay Network
 export const RELAY_DEPLOY_COST_METAL = 400; // Metal required to deploy a relay

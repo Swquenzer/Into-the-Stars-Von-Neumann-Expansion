@@ -92,21 +92,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Track the previous number of active probes to detect new operations
-  const activeProbesCount = useMemo(
-    () => probes.filter((p) => p.state !== ProbeState.Idle).length,
-    [probes]
-  );
-  const prevActiveCount = useRef(activeProbesCount);
-
-  // Auto-expand Operations panel when a new operation starts
-  useEffect(() => {
-    if (activeProbesCount > prevActiveCount.current) {
-      setActiveTabs((prev) => ({ ...prev, operations: true }));
-    }
-    prevActiveCount.current = activeProbesCount;
-  }, [activeProbesCount]);
-
   // Auto-expand panels when selection changes
   useEffect(() => {
     if (selectedProbeId) {

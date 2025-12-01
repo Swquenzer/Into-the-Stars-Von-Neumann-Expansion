@@ -46,7 +46,7 @@ App.tsx                   # State orchestration & game loop coordination
 
 ```
 App.tsx
-├── StarMap.tsx              # Canvas rendering, pan/zoom, click selection
+├── StarMap.tsx              # Canvas rendering, pan/zoom, click selection, shows stats overlay
 ├── ControlPanel.tsx         # Tabbed sidebar container
 │   └── panels/
 │       ├── ProbesListPanel.tsx      # Probe list, rename, autonomy toggle
@@ -57,6 +57,8 @@ App.tsx
 │       └── RelaysListPanel.tsx      # Relay network management
 └── ProbeDesigner.tsx        # Modal for custom blueprint creation
 ```
+
+**Panel Layout**: Probes, Systems, Logs, Science, Relays panels left-to-right, Operations panel on far right. Logs tab positioned at bottom of sidebar above Import/Export buttons. Panels do not auto-open; user must manually toggle via sidebar tabs.
 
 ### UI Color Scheme
 
@@ -245,9 +247,11 @@ return { ...prev, probes: finalProbes, logs: [...prev.logs, ...newLogs] };
 
 - **Universe**: 2000×2000 base, infinite via sectors
 - **Speeds**: Flight speed multiplied by stats, ~10 units/sec base
+- **Starting Inventory**: Probes begin with 40 Metal and 10 Plutonium (tight early game balance)
 - **Upgrade Costs**: Defined in `UPGRADE_COSTS`, pattern: `{ Metal, Plutonium, increment, name }`
   - Cost scales with level: `cost = baseCost * (currentLevel + 1)`
-  - Example: Level 0→1 costs 100M, Level 1→2 costs 200M, etc.
+  - First mining upgrade: 50 Metal, 5 Plutonium (most affordable early upgrade)
+  - Example: Level 0→1 costs 50M/5P, Level 1→2 costs 100M/10P, etc.
 - **Relay Deployment**: `RELAY_DEPLOY_COST_METAL = 400` - Metal cost to deploy a relay station
 - **Max Stat Levels** (`MAX_STAT_LEVELS`):
   - Mining Speed: 10, Flight Speed: 10, Replication Speed: 5
