@@ -14,6 +14,7 @@ export interface AutonomyResult {
   systemChanges?: { systemId: string; changes: Partial<SolarSystem> }[];
   shouldReplicate?: boolean;
   replicationThresholds?: { metal: number; plutonium: number; time: number };
+  newProbeInstructions?: any;
 }
 
 /**
@@ -30,11 +31,19 @@ export const processAutonomousProbe = (
   relays: Array<{ systemId: string }> = [],
   hasRelayUnlock: boolean = false
 ): AutonomyResult => {
-  // Only process if AI is enabled and probe is idle
+  // Only process if AI is enabled
   if (
     probe.stats.autonomyLevel === 0 ||
-    !probe.isAutonomyEnabled ||
-    probe.state !== ProbeState.Idle
+    !probe.isAutonomyEnabled
+  ) {
+    return { probe };
+  }
+
+  // Don't interrupt critical operations (traveling, replicating)
+  if (
+    probe.state === ProbeState.Traveling ||
+    probe.state === ProbeState.Replicating ||
+    probe.state === ProbeState.Exploring
   ) {
     return { probe };
   }
@@ -43,6 +52,21 @@ export const processAutonomousProbe = (
   const currentSystem = systems.find((s) => s.id === updatedProbe.locationId);
   const systemChanges: { systemId: string; changes: Partial<SolarSystem> }[] =
     [];
+
+  // Store previous state before interrupting (for decision-making)
+  const previousState = probe.state;
+
+  // If currently doing an interruptible operation, stop it to make a new decision
+  if (
+    probe.state === ProbeState.MiningMetal ||
+    probe.state === ProbeState.MiningPlutonium ||
+    probe.state === ProbeState.Scanning ||
+    probe.state === ProbeState.Researching
+  ) {
+    updatedProbe.state = ProbeState.Idle;
+    updatedProbe.progress = 0;
+    updatedProbe.miningBuffer = 0;
+  }
 
   // Priority 1: Instant Analysis upon arrival
   if (currentSystem && !currentSystem.analyzed) {
@@ -71,7 +95,10 @@ export const processAutonomousProbe = (
     updatedProbe,
     systems,
     relays,
-    hasRelayUnlock
+    hasRelayUnlock,
+    updatedProbe.lastReplicationTime,
+    now,
+    previousState
   );
 
   if (!decision) {
@@ -87,9 +114,34 @@ export const processAutonomousProbe = (
     }
   }
 
-  // Execute decision
+  // FocusReplication logic
+  if (
+    updatedProbe.aiBehavior === AIBehavior.FocusReplication &&
+    decision.action === "replicate"
+  ) {
+    // Cooldown/resource checks are handled in processBehaviorMode
+    updatedProbe.state = ProbeState.Replicating;
+    updatedProbe.progress = 0;
+    updatedProbe.lastReplicationTime = now;
+    // If decision includes newProbeInstructions, pass them out for game loop to handle
+    return {
+      probe: updatedProbe,
+      systemChanges,
+      logMessage: `${updatedProbe.name} (AI): ${decision.reason}`,
+      shouldReplicate: true,
+      replicationThresholds: decision.replicationThresholds,
+      // Pass instructions for new probe (travel/default AI)
+      newProbeInstructions: decision.newProbeInstructions,
+    };
+  }
+
+  // Execute other decisions
   switch (decision.action) {
     case "mine_metal":
+      // Reset batch progress if switching from Plutonium to Metal
+      if (previousState === ProbeState.MiningPlutonium) {
+        updatedProbe.miningBatchProgress = 0;
+      }
       updatedProbe.state = ProbeState.MiningMetal;
       updatedProbe.progress = 0;
       updatedProbe.miningBuffer = 0;
@@ -100,6 +152,10 @@ export const processAutonomousProbe = (
       };
 
     case "mine_plutonium":
+      // Reset batch progress if switching from Metal to Plutonium
+      if (previousState === ProbeState.MiningMetal) {
+        updatedProbe.miningBatchProgress = 0;
+      }
       updatedProbe.state = ProbeState.MiningPlutonium;
       updatedProbe.progress = 0;
       updatedProbe.miningBuffer = 0;

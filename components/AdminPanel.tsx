@@ -11,7 +11,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onSetScience,
 }) => {
   const [scienceInput, setScienceInput] = useState(gameState.science);
-  const [minimized, setMinimized] = useState(false);
+  const [minimized, setMinimized] = useState(false); // Default: visible
 
   if (minimized) {
     return (

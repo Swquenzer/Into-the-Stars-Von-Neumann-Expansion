@@ -29,10 +29,11 @@ export enum ProbeModel {
 }
 
 export enum AIBehavior {
-  None = "none",
-  FocusMining = "focus_mining",
-  FocusExploring = "focus_exploring",
-  FocusScience = "focus_science",
+  None = "None",
+  FocusMining = "FocusMining",
+  FocusExploring = "FocusExploring",
+  FocusScience = "FocusScience",
+  FocusReplication = "FocusReplication",
 }
 
 export interface AIModule {
@@ -126,6 +127,8 @@ export interface Probe {
   aiModules: AIModule[]; // Installed behavior modules
   aiSettings?: AIBehaviorSettings; // Behavior-specific settings
   aiDecisionLog?: string[]; // Recent AI decisions (last 5)
+  lastReplicationTime?: number; // Timestamp for FocusReplication cooldown
+  miningBatchProgress?: number; // Counter for default behavior mining rotation (0-10)
 }
 
 export interface GameState {

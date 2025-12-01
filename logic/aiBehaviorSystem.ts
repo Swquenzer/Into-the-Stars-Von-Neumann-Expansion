@@ -1,3 +1,143 @@
+/**
+ * Focus Replication: Replicate as long as resources allow, then move to nearest system with enough resources.
+ * Checks post-replication Plutonium for travel. Respects cooldown.
+ */
+export const processFocusReplication = (
+  probe: Probe,
+  systems: SolarSystem[],
+  currentSystem: SolarSystem | undefined,
+  lastReplicationTime: number | undefined,
+  now: number
+): BehaviorDecision | null => {
+  // Replication cost (match blueprint or use defaults)
+  const REPLICATION_METAL = 500;
+  const REPLICATION_PLUTONIUM = 300;
+  const REPLICATION_COOLDOWN = 20000; // 20s cooldown
+
+  // Find nearest system with enough resources
+  const candidates = systems.filter(
+    (s) =>
+      s.discovered &&
+      s.id !== probe.locationId &&
+      s.resourceYield.Metal >= REPLICATION_METAL &&
+      s.resourceYield.Plutonium >= REPLICATION_PLUTONIUM
+  );
+
+  // Helper: distance to system
+  const getDist = (sys: SolarSystem) =>
+    Math.hypot(
+      sys.position.x - probe.position.x,
+      sys.position.y - probe.position.y
+    );
+
+  // Check cooldown
+  if (lastReplicationTime && now - lastReplicationTime < REPLICATION_COOLDOWN) {
+    return {
+      action: "idle",
+      reason: `Focus Replication: waiting for cooldown (${Math.ceil(
+        (REPLICATION_COOLDOWN - (now - lastReplicationTime)) / 1000
+      )}s)`,
+    };
+  }
+
+  // Can replicate here?
+  if (
+    currentSystem &&
+    probe.inventory.Metal >= REPLICATION_METAL &&
+    probe.inventory.Plutonium >= REPLICATION_PLUTONIUM
+  ) {
+    // After replication, will we have enough Plutonium to reach next system?
+    let minDist = Infinity;
+    let nearest: SolarSystem | null = null;
+    candidates.forEach((s) => {
+      const d = getDist(s);
+      if (d < minDist) {
+        minDist = d;
+        nearest = s;
+      }
+    });
+    const postRepPlutonium = probe.inventory.Plutonium - REPLICATION_PLUTONIUM;
+    const fuelNeeded = nearest
+      ? Math.floor(minDist * FUEL_CONSUMPTION_RATE)
+      : 0;
+    if (nearest && postRepPlutonium < fuelNeeded) {
+      // Not enough fuel after replication, mine Plutonium first
+      if (currentSystem.resourceYield.Plutonium > 0) {
+        return {
+          action: "mine_plutonium",
+          reason:
+            "Focus Replication: mining Plutonium to ensure post-replication travel",
+        };
+      }
+    }
+    // Replicate!
+    return {
+      action: "replicate",
+      reason: "Focus Replication: replicating at current system",
+      replicationThresholds: {
+        metal: REPLICATION_METAL,
+        plutonium: REPLICATION_PLUTONIUM,
+        time: 10000, // 10 seconds base replication time
+      },
+    };
+  }
+
+  // Not enough resources, mine locally if possible
+  if (currentSystem) {
+    if (
+      probe.inventory.Metal < REPLICATION_METAL &&
+      currentSystem.resourceYield.Metal > 0
+    ) {
+      return {
+        action: "mine_metal",
+        reason: "Focus Replication: mining Metal for replication",
+      };
+    }
+    if (
+      probe.inventory.Plutonium < REPLICATION_PLUTONIUM &&
+      currentSystem.resourceYield.Plutonium > 0
+    ) {
+      return {
+        action: "mine_plutonium",
+        reason: "Focus Replication: mining Plutonium for replication",
+      };
+    }
+  }
+
+  // Move to nearest system with enough resources
+  if (candidates.length > 0) {
+    let minDist = Infinity;
+    let nearest: SolarSystem | null = null;
+    candidates.forEach((s) => {
+      const d = getDist(s);
+      if (d < minDist) {
+        minDist = d;
+        nearest = s;
+      }
+    });
+    if (nearest) {
+      const fuelNeeded = Math.floor(minDist * FUEL_CONSUMPTION_RATE);
+      if (probe.inventory.Plutonium >= fuelNeeded) {
+        return {
+          action: "travel",
+          targetSystemId: nearest.id,
+          reason: `Focus Replication: traveling to ${nearest.name} for resources`,
+        };
+      } else if (currentSystem && currentSystem.resourceYield.Plutonium > 0) {
+        return {
+          action: "mine_plutonium",
+          reason: "Focus Replication: refueling for travel to resource system",
+        };
+      }
+    }
+  }
+
+  // Fallback: idle
+  return {
+    action: "idle",
+    reason: "Focus Replication: no viable replication or travel targets",
+  };
+};
 import {
   Probe,
   SolarSystem,
@@ -16,52 +156,78 @@ export interface BehaviorDecision {
     | "scan"
     | "research"
     | "deploy_relay"
+    | "replicate"
     | "idle";
   targetSystemId?: string;
   reason: string;
+  replicationThresholds?: { metal: number; plutonium: number; time: number };
+  newProbeInstructions?: any;
 }
 
 /**
- * Default behavior: Alternate between mining Metal and Plutonium
+ * Default behavior: Alternate between mining Metal and Plutonium every 10 units
  */
 export const processDefaultBehavior = (
   probe: Probe,
-  currentSystem: SolarSystem | undefined
+  currentSystem: SolarSystem | undefined,
+  previousState?: ProbeState
 ): BehaviorDecision | null => {
   if (!currentSystem) return null;
 
-  // Check what we mined last based on current state
-  const lastMinedMetal = probe.state === ProbeState.MiningMetal;
-  const lastMinedPlutonium = probe.state === ProbeState.MiningPlutonium;
+  // Initialize batch progress if needed
+  const batchProgress = probe.miningBatchProgress ?? 0;
+  // Use previousState if provided (for when probe was interrupted), otherwise use current state
+  const stateToCheck = previousState ?? probe.state;
+  const currentlyMiningMetal = stateToCheck === ProbeState.MiningMetal;
+  const currentlyMiningPlutonium = stateToCheck === ProbeState.MiningPlutonium;
 
-  // Alternate: if last mined Metal (or starting fresh), mine Plutonium next
-  if (lastMinedMetal || probe.state === ProbeState.Idle) {
-    if (currentSystem.resourceYield.Plutonium > 0) {
-      return {
-        action: "mine_plutonium",
-        reason: "Default behavior: alternating to Plutonium",
-      };
-    } else if (currentSystem.resourceYield.Metal > 0) {
-      return {
-        action: "mine_metal",
-        reason: "Default behavior: Plutonium depleted, mining Metal",
-      };
+  // If we've completed a batch of 10 (or starting fresh), switch resources
+  const shouldSwitch = batchProgress >= 10 || stateToCheck === ProbeState.Idle;
+
+  // Determine which resource to mine
+  let targetResource: "metal" | "plutonium";
+  
+  if (shouldSwitch) {
+    // Switch to the opposite of what we were mining
+    if (currentlyMiningMetal) {
+      targetResource = "plutonium";
+    } else {
+      // Default to metal if starting fresh or was mining plutonium
+      targetResource = "metal";
     }
+  } else {
+    // Continue with current resource
+    targetResource = currentlyMiningMetal ? "metal" : "plutonium";
   }
 
-  // If last mined Plutonium, mine Metal next
-  if (lastMinedPlutonium) {
-    if (currentSystem.resourceYield.Metal > 0) {
-      return {
-        action: "mine_metal",
-        reason: "Default behavior: alternating to Metal",
-      };
-    } else if (currentSystem.resourceYield.Plutonium > 0) {
-      return {
-        action: "mine_plutonium",
-        reason: "Default behavior: Metal depleted, mining Plutonium",
-      };
-    }
+  // Try to mine the target resource
+  if (targetResource === "metal" && currentSystem.resourceYield.Metal > 0) {
+    return {
+      action: "mine_metal",
+      reason: shouldSwitch 
+        ? `Default behavior: switching to Metal (batch complete)`
+        : `Default behavior: mining Metal (${batchProgress}/10)`,
+    };
+  } else if (targetResource === "plutonium" && currentSystem.resourceYield.Plutonium > 0) {
+    return {
+      action: "mine_plutonium",
+      reason: shouldSwitch
+        ? `Default behavior: switching to Plutonium (batch complete)`
+        : `Default behavior: mining Plutonium (${batchProgress}/10)`,
+    };
+  }
+
+  // Fallback to other resource if target is depleted
+  if (currentSystem.resourceYield.Metal > 0) {
+    return {
+      action: "mine_metal",
+      reason: "Default behavior: mining Metal (fallback)",
+    };
+  } else if (currentSystem.resourceYield.Plutonium > 0) {
+    return {
+      action: "mine_plutonium",
+      reason: "Default behavior: mining Plutonium (fallback)",
+    };
   }
 
   return { action: "idle", reason: "Default behavior: all resources depleted" };
@@ -297,7 +463,10 @@ export const processBehaviorMode = (
   probe: Probe,
   systems: SolarSystem[],
   relays: Array<{ systemId: string }>,
-  hasRelayUnlock: boolean
+  hasRelayUnlock: boolean,
+  lastReplicationTime?: number,
+  now?: number,
+  previousState?: ProbeState
 ): BehaviorDecision | null => {
   const currentSystem = systems.find((s) => s.id === probe.locationId);
   const hasRelayAtCurrentSystem = currentSystem
@@ -310,10 +479,8 @@ export const processBehaviorMode = (
   switch (behavior) {
     case AIBehavior.FocusMining:
       return processFocusMining(probe, systems, currentSystem);
-
     case AIBehavior.FocusExploring:
       return processFocusExploring(probe, systems, currentSystem);
-
     case AIBehavior.FocusScience:
       return processFocusScience(
         probe,
@@ -322,9 +489,16 @@ export const processBehaviorMode = (
         hasRelayAtCurrentSystem,
         hasRelayUnlock
       );
-
+    case AIBehavior.FocusReplication:
+      return processFocusReplication(
+        probe,
+        systems,
+        currentSystem,
+        lastReplicationTime,
+        now ?? Date.now()
+      );
     default:
       // No specific behavior or AIBehavior.None - use default
-      return processDefaultBehavior(probe, currentSystem);
+      return processDefaultBehavior(probe, currentSystem, previousState);
   }
 };

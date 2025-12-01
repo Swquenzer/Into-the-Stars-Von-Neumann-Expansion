@@ -198,9 +198,6 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
       selectedProbe.inventory.Metal >= metalCost &&
       selectedProbe.inventory.Plutonium >= plutoniumCost;
 
-    // Hide autonomy upgrades at max level
-    if (statKey === "autonomyLevel" && isAtMax) return null;
-
     return (
       <div className="bg-slate-900 p-2 rounded border border-slate-800 flex justify-between items-center group">
         <div className="flex flex-col">
@@ -481,6 +478,7 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                       AIBehavior.FocusMining,
                       AIBehavior.FocusExploring,
                       AIBehavior.FocusScience,
+                      AIBehavior.FocusReplication,
                     ].map((behavior) => {
                       const hasModule = selectedProbe.aiModules?.some(
                         (m) => m.type === behavior
@@ -550,6 +548,7 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                       AIBehavior.FocusMining,
                       AIBehavior.FocusExploring,
                       AIBehavior.FocusScience,
+                      AIBehavior.FocusReplication,
                     ].map((behavior) => {
                       const hasModule = selectedProbe.aiModules?.some(
                         (m) => m.type === behavior
@@ -586,31 +585,32 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                       );
                     })}
                   </div>
-
-                  {/* AI Decision Log */}
-                  {selectedProbe.aiDecisionLog &&
-                    selectedProbe.aiDecisionLog.length > 0 && (
-                      <>
-                        <div className="text-[9px] text-purple-400 font-bold mt-2 mb-1">
-                          DECISION LOG
-                        </div>
-                        <div className="bg-slate-950 border border-slate-800 rounded p-1.5 max-h-24 overflow-y-auto">
-                          {selectedProbe.aiDecisionLog
-                            .slice()
-                            .reverse()
-                            .map((decision, idx) => (
-                              <div
-                                key={idx}
-                                className="text-[9px] text-slate-500 leading-tight mb-0.5"
-                              >
-                                • {decision}
-                              </div>
-                            ))}
-                        </div>
-                      </>
-                    )}
                 </div>
               )}
+
+              {/* AI Decision Log (shown for any autonomy level >= 1) */}
+              {selectedProbe.stats.autonomyLevel >= 1 &&
+                selectedProbe.aiDecisionLog &&
+                selectedProbe.aiDecisionLog.length > 0 && (
+                  <div className="bg-purple-950/30 border border-purple-900 rounded p-2">
+                    <div className="text-[9px] text-purple-400 font-bold mb-1">
+                      AI DECISION LOG
+                    </div>
+                    <div className="bg-slate-950 border border-slate-800 rounded p-1.5 max-h-24 overflow-y-auto">
+                      {selectedProbe.aiDecisionLog
+                        .slice()
+                        .reverse()
+                        .map((decision, idx) => (
+                          <div
+                            key={idx}
+                            className="text-[9px] text-slate-500 leading-tight mb-0.5"
+                          >
+                            • {decision}
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
 
               {/* Performance Stats */}
               <div className="grid grid-cols-2 gap-2">
@@ -716,7 +716,7 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
               {/* Actions */}
               <div className="pt-2 border-t border-slate-800">
                 <div className="text-[10px] text-slate-600 font-bold mb-2">
-                  PROBE ACTIONS
+                  MANUAL PROBE ACTIONS
                 </div>
 
                 <div className="grid grid-cols-1 gap-2">
@@ -900,7 +900,17 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                     selectedProbe.state !== ProbeState.Exploring && (
                       <button
                         onClick={onStopOperation}
-                        className="flex items-center justify-center gap-2 bg-amber-900/50 hover:bg-amber-900 text-amber-200 py-1.5 rounded text-xs font-bold border border-amber-800 transition-colors"
+                        disabled={
+                          selectedProbe.isAutonomyEnabled &&
+                          selectedProbe.stats.autonomyLevel > 0
+                        }
+                        className="flex items-center justify-center gap-2 bg-amber-900/50 hover:bg-amber-900 text-amber-200 py-1.5 rounded text-xs font-bold border border-amber-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        title={
+                          selectedProbe.isAutonomyEnabled &&
+                          selectedProbe.stats.autonomyLevel > 0
+                            ? "Cannot manually halt AI-controlled operations. Disable AI first."
+                            : ""
+                        }
                       >
                         <Pause size={12} /> HALT OPERATIONS
                       </button>

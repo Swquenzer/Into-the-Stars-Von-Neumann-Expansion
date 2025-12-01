@@ -33,22 +33,45 @@ export const handleToggleAutonomy = (
   setGameState: SetGameState,
   probeId: string
 ) => {
-  setGameState((prev) => ({
-    ...prev,
-    probes: prev.probes.map((p) =>
+  setGameState((prev) => {
+    const probe = prev.probes.find((p) => p.id === probeId);
+    if (!probe) return prev;
+
+    const willDisableAI = probe.isAutonomyEnabled;
+
+    // Toggle AI state
+    const updatedProbes = prev.probes.map((p) =>
       p.id === probeId ? { ...p, isAutonomyEnabled: !p.isAutonomyEnabled } : p
-    ),
-    logs: [
-      ...prev.logs,
-      `Unit ${
-        prev.probes.find((p) => p.id === probeId)?.name
-      } autonomous systems ${
-        prev.probes.find((p) => p.id === probeId)?.isAutonomyEnabled
-          ? "disabled"
-          : "enabled"
-      }.`,
-    ],
-  }));
+    );
+
+    // If turning AI off, halt current operation
+    const finalProbes = willDisableAI
+      ? updatedProbes.map((p) =>
+          p.id === probeId &&
+          (p.state === ProbeState.MiningMetal ||
+            p.state === ProbeState.MiningPlutonium ||
+            p.state === ProbeState.Scanning ||
+            p.state === ProbeState.Researching)
+            ? {
+                ...p,
+                state: ProbeState.Idle,
+                progress: 0,
+                miningBuffer: 0,
+              }
+            : p
+        )
+      : updatedProbes;
+
+    const logMessage = willDisableAI
+      ? `${probe.name} autonomous systems disabled, operations halted.`
+      : `${probe.name} autonomous systems enabled.`;
+
+    return {
+      ...prev,
+      probes: finalProbes,
+      logs: [...prev.logs, logMessage],
+    };
+  });
 };
 
 /**

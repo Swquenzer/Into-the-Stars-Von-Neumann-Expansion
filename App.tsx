@@ -68,7 +68,7 @@ import { AdminPanel } from "./components/AdminPanel";
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
-  const [adminMode, setAdminMode] = useState(false);
+  const [adminMode, setAdminMode] = useState(true);
   // --- Admin Handler ---
   const handleSetScience = (value: number) => {
     setGameState((prev) => ({ ...prev, science: value }));
@@ -147,10 +147,13 @@ export default function App() {
         let updatedProbe = { ...probe };
 
         // --- AUTONOMOUS PROBE LOGIC ---
+        // Only run for Idle, Traveling, Exploring, Scanning, Researching, and Replicating states
+        // Mining states are handled within processMiningProbe when resources transfer
         if (
           probe.stats.autonomyLevel > 0 &&
           probe.isAutonomyEnabled &&
-          probe.state === ProbeState.Idle
+          probe.state !== ProbeState.MiningMetal &&
+          probe.state !== ProbeState.MiningPlutonium
         ) {
           const hasRelayUnlock =
             prev.purchasedUnlocks?.includes("quantum_relay_network") || false;
@@ -263,6 +266,31 @@ export default function App() {
               },
             };
             systemsChanged = true;
+          }
+          // Check autonomy after resources were transferred
+          if (result.shouldCheckAutonomy && updatedProbe.stats.autonomyLevel > 0 && updatedProbe.isAutonomyEnabled) {
+            const hasRelayUnlock = prev.purchasedUnlocks?.includes("quantum_relay_network") || false;
+            const autonomyResult = processAutonomousProbe(
+              updatedProbe,
+              newSystems,
+              colonizedSystemIds,
+              now,
+              prev.relays || [],
+              hasRelayUnlock
+            );
+            updatedProbe = autonomyResult.probe;
+            if (autonomyResult.logMessage) {
+              newLogs.push(autonomyResult.logMessage);
+            }
+            if (autonomyResult.systemChanges) {
+              autonomyResult.systemChanges.forEach((change) => {
+                const idx = newSystems.findIndex((s) => s.id === change.systemId);
+                if (idx > -1) {
+                  newSystems[idx] = { ...newSystems[idx], ...change.changes };
+                  systemsChanged = true;
+                }
+              });
+            }
           }
         } else if (updatedProbe.state === ProbeState.Replicating) {
           const result = processReplicatingProbe(

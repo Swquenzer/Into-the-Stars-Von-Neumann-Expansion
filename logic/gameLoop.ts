@@ -23,6 +23,7 @@ export interface StateUpdateResult {
   systemUpdates: { index: number; updates: Partial<SolarSystem> }[];
   newProbes: Probe[];
   scienceDelta?: number;
+  shouldCheckAutonomy?: boolean; // Flag to trigger autonomy re-evaluation
 }
 
 /**
@@ -442,6 +443,9 @@ export const processMiningProbe = (
       updatedProbe.inventory[resourceType] += actualTransfer;
       updatedProbe.miningBuffer -= transferAmount;
 
+      // Update batch progress for default behavior tracking
+      updatedProbe.miningBatchProgress = (updatedProbe.miningBatchProgress ?? 0) + actualTransfer;
+
       systemYieldUpdate = {
         index: sysIndex,
         resourceType,
@@ -456,12 +460,16 @@ export const processMiningProbe = (
     logMessages.push(`${updatedProbe.name} halted. ${resourceType} depleted.`);
   }
 
+  // Flag to check autonomy if resources were transferred
+  const shouldCheckAutonomy = systemYieldUpdate !== undefined;
+
   return {
     probe: updatedProbe,
     logMessages,
     systemUpdates,
     newProbes: [],
     systemYieldUpdate,
+    shouldCheckAutonomy,
   };
 };
 
@@ -514,6 +522,7 @@ export const processReplicatingProbe = (
       miningBuffer: 0,
       isSolarSailing: false,
       isAutonomyEnabled: true,
+      aiModules: [],
       lastDiversionCheck: Date.now(),
     };
 

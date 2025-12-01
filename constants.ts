@@ -43,6 +43,7 @@ export const SCIENCE_UNLOCK_IDS = {
   FOCUS_MINING_MODULE: "focus_mining_module",
   FOCUS_EXPLORING_MODULE: "focus_exploring_module",
   FOCUS_SCIENCE_MODULE: "focus_science_module",
+  FOCUS_REPLICATION_MODULE: "focus_replication_module",
 } as const;
 
 export type ScienceUnlockId =
@@ -245,6 +246,16 @@ export const SCIENCE_UNLOCKS: ScienceUnlock[] = [
     prerequisites: [SCIENCE_UNLOCK_IDS.FOCUS_EXPLORING_MODULE],
     effect: { type: "new_capability", value: 0 },
   },
+  {
+    id: SCIENCE_UNLOCK_IDS.FOCUS_REPLICATION_MODULE,
+    name: "Focus Replication Module",
+    description:
+      "Allows probes to autonomously replicate and spread to new systems.",
+    category: "ai",
+    cost: 2200,
+    prerequisites: [SCIENCE_UNLOCK_IDS.AI_BEHAVIOR_PROTOCOLS],
+    effect: { type: "new_capability", value: 0 },
+  },
 ];
 
 export const CATEGORY_COLORS = {
@@ -442,4 +453,5 @@ export const AI_MODULE_COSTS = {
   [AIBehavior.FocusMining]: { Metal: 150, Plutonium: 0 },
   [AIBehavior.FocusExploring]: { Metal: 100, Plutonium: 50 },
   [AIBehavior.FocusScience]: { Metal: 200, Plutonium: 100 },
+  [AIBehavior.FocusReplication]: { Metal: 300, Plutonium: 200 },
 };

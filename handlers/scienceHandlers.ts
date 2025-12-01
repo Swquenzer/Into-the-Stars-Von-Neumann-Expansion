@@ -69,6 +69,8 @@ export const handlePurchaseUnlock = (
       newUnlockedBehaviors.push(AIBehavior.FocusExploring);
     } else if (unlockId === SCIENCE_UNLOCK_IDS.FOCUS_SCIENCE_MODULE) {
       newUnlockedBehaviors.push(AIBehavior.FocusScience);
+    } else if (unlockId === SCIENCE_UNLOCK_IDS.FOCUS_REPLICATION_MODULE) {
+      newUnlockedBehaviors.push(AIBehavior.FocusReplication);
     }
 
     return {
