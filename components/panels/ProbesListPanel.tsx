@@ -939,68 +939,70 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                       </button>
                     </div>
                     <div className="grid grid-cols-2 gap-1">
-                      {blueprints.map((bp) => {
-                        const cost = bp.cost;
-                        const canAfford =
-                          selectedProbe.inventory.Metal >= cost.Metal &&
-                          selectedProbe.inventory.Plutonium >= cost.Plutonium;
-                        const effectiveTime = Math.ceil(
-                          cost.time /
-                            selectedProbe.stats.replicationSpeed /
-                            1000
-                        );
+                      {blueprints
+                        .filter((bp) => bp.isCustom)
+                        .map((bp) => {
+                          const cost = bp.cost;
+                          const canAfford =
+                            selectedProbe.inventory.Metal >= cost.Metal &&
+                            selectedProbe.inventory.Plutonium >= cost.Plutonium;
+                          const effectiveTime = Math.ceil(
+                            cost.time /
+                              selectedProbe.stats.replicationSpeed /
+                              1000
+                          );
 
-                        return (
-                          <button
-                            key={bp.id}
-                            onClick={() => onReplicate(bp)}
-                            disabled={
-                              selectedProbe.state !== ProbeState.Idle ||
-                              !canAfford
-                            }
-                            className={`relative text-[10px] p-1.5 rounded border text-left transition-all group/bp ${
-                              canAfford &&
-                              selectedProbe.state === ProbeState.Idle
-                                ? "bg-slate-800 border-slate-700 hover:border-cyan-500 text-slate-300"
-                                : "bg-slate-900 border-slate-800 text-slate-700 cursor-not-allowed"
-                            }`}
-                          >
-                            <div className="font-bold truncate pr-3">
-                              {bp.name}
-                            </div>
-                            <div className="opacity-60 flex justify-between items-center">
-                              <span>
-                                M:{cost.Metal} P:{cost.Plutonium}
-                              </span>
-                              <span className="text-[9px] flex items-center gap-0.5">
-                                <Clock size={9} /> {effectiveTime}s
-                              </span>
-                            </div>
-                            {bp.isCustom && (
-                              <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover/bp:opacity-100">
-                                <div
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onOpenDesigner(bp);
-                                  }}
-                                  className="hover:text-cyan-400 p-0.5"
-                                >
-                                  <Pencil size={10} />
-                                </div>
-                                <div
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onDeleteBlueprint(bp.id);
-                                  }}
-                                  className="hover:text-red-400 p-0.5"
-                                >
-                                  <Trash2 size={10} />
-                                </div>
+                          return (
+                            <button
+                              key={bp.id}
+                              onClick={() => onReplicate(bp)}
+                              disabled={
+                                selectedProbe.state !== ProbeState.Idle ||
+                                !canAfford
+                              }
+                              className={`relative text-[10px] p-1.5 rounded border text-left transition-all group/bp ${
+                                canAfford &&
+                                selectedProbe.state === ProbeState.Idle
+                                  ? "bg-slate-800 border-slate-700 hover:border-cyan-500 text-slate-300"
+                                  : "bg-slate-900 border-slate-800 text-slate-700 cursor-not-allowed"
+                              }`}
+                            >
+                              <div className="font-bold truncate pr-3">
+                                {bp.name}
                               </div>
-                            )}
-                          </button>
-                        );
-                      })}
+                              <div className="opacity-60 flex justify-between items-center">
+                                <span>
+                                  M:{cost.Metal} P:{cost.Plutonium}
+                                </span>
+                                <span className="text-[9px] flex items-center gap-0.5">
+                                  <Clock size={9} /> {effectiveTime}s
+                                </span>
+                              </div>
+                              {bp.isCustom && (
+                                <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover/bp:opacity-100">
+                                  <div
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onOpenDesigner(bp);
+                                    }}
+                                    className="hover:text-cyan-400 p-0.5"
+                                  >
+                                    <Pencil size={10} />
+                                  </div>
+                                  <div
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onDeleteBlueprint(bp.id);
+                                    }}
+                                    className="hover:text-red-400 p-0.5"
+                                  >
+                                    <Trash2 size={10} />
+                                  </div>
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
                     </div>
                   </div>
                 </div>

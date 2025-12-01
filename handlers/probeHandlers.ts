@@ -1,5 +1,11 @@
 import React from "react";
-import { GameState, Probe, ProbeStats, ProbeState } from "../types";
+import {
+  GameState,
+  Probe,
+  ProbeStats,
+  ProbeState,
+  ResourceType,
+} from "../types";
 import { UPGRADE_COSTS, MAX_STAT_LEVELS } from "../constants";
 
 export type SetGameState = React.Dispatch<React.SetStateAction<GameState>>;
@@ -173,5 +179,53 @@ export const handleSelfDestruct = (
         prev.probes.find((p) => p.id === probeId)?.name
       } self-destruct sequence initiated. Signal lost.`,
     ],
+  }));
+};
+
+/**
+ * Admin: Spawn Super Probe at selected system
+ */
+export const handleAdminSpawnSuperProbe = (
+  setGameState: SetGameState,
+  gameState: GameState
+) => {
+  const systemId = gameState.selectedSystemId;
+  if (!systemId) return;
+  const system = gameState.systems.find((s) => s.id === systemId);
+  if (!system) return;
+
+  const newProbe: Probe = {
+    id: `admin-probe-${Date.now()}`,
+    name: "ADMIN SUPER PROBE",
+    model: "Admin Super Probe",
+    state: ProbeState.Idle,
+    locationId: system.id,
+    originSystemId: system.id,
+    position: { ...system.position },
+    targetSystemId: null,
+    inventory: {
+      [ResourceType.Metal]: 5000,
+      [ResourceType.Plutonium]: 2000,
+    },
+    stats: {
+      miningSpeed: 10,
+      flightSpeed: 10,
+      replicationSpeed: 5,
+      scanRange: 1000,
+      scanSpeed: 10,
+      autonomyLevel: 2,
+    },
+    progress: 0,
+    miningBuffer: 0,
+    isSolarSailing: false,
+    isAutonomyEnabled: false,
+    aiModules: [],
+    aiDecisionLog: [],
+  };
+
+  setGameState((prev) => ({
+    ...prev,
+    probes: [...prev.probes, newProbe],
+    logs: [...prev.logs, `ADMIN: Deployed Super Probe at ${system.name}.`],
   }));
 };

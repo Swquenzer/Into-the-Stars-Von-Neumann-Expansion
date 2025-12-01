@@ -30,6 +30,7 @@ import {
   handleToggleAutonomy as toggleAutonomy,
   handleUpgradeProbe as upgradeProbe,
   handleSelfDestruct as selfDestruct,
+  handleAdminSpawnSuperProbe,
 } from "./handlers/probeHandlers";
 import {
   handleLaunch as launchProbe,
@@ -72,6 +73,9 @@ export default function App() {
   // --- Admin Handler ---
   const handleSetScience = (value: number) => {
     setGameState((prev) => ({ ...prev, science: value }));
+  };
+  const handleSpawnSuperProbe = () => {
+    handleAdminSpawnSuperProbe(setGameState, gameState);
   };
   const lastTickRef = useRef<number>(Date.now());
   const rafRef = useRef<number>(0);
@@ -397,7 +401,11 @@ export default function App() {
     <div className="flex w-screen h-screen bg-slate-950 text-slate-200 overflow-hidden font-sans">
       {/* AdminPanel only, no top-right toggle */}
       {adminMode && (
-        <AdminPanel gameState={gameState} onSetScience={handleSetScience} />
+        <AdminPanel
+          gameState={gameState}
+          onSetScience={handleSetScience}
+          onSpawnSuperProbe={handleSpawnSuperProbe}
+        />
       )}
 
       <div className="flex-1 relative">

@@ -4,11 +4,13 @@ import { GameState } from "../types";
 interface AdminPanelProps {
   gameState: GameState;
   onSetScience: (value: number) => void;
+  onSpawnSuperProbe: () => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
   gameState,
   onSetScience,
+  onSpawnSuperProbe,
 }) => {
   const [scienceInput, setScienceInput] = useState(gameState.science);
   const [minimized, setMinimized] = useState(false); // Default: visible
@@ -54,6 +56,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           onClick={() => onSetScience(scienceInput)}
         >
           Set Science
+        </button>
+      </div>
+      <div className="mb-2">
+        <label className="text-xs text-slate-300 font-bold mb-1 block">
+          Admin Actions
+        </label>
+        <button
+          className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-1 rounded disabled:opacity-50"
+          onClick={onSpawnSuperProbe}
+          disabled={!gameState.selectedSystemId}
+          title={
+            gameState.selectedSystemId
+              ? "Spawn Admin Super Probe at selected system"
+              : "Select a system to spawn the probe"
+          }
+        >
+          Spawn Admin Super Probe
         </button>
       </div>
       {/* Future cheats can be added here */}
