@@ -118,4 +118,13 @@ export interface GameState {
   science: number; // Global science bank
   purchasedUnlocks: string[]; // IDs of purchased science unlocks
   maxStatLevelOverrides: Partial<Record<keyof ProbeStats, number>>; // Dynamic max levels from unlocks
+  relays: Relay[]; // Deployed relay stations
+}
+
+export interface Relay {
+  id: string;
+  name: string;
+  systemId: string; // Anchored to a solar system
+  position: Coordinates; // For rendering convenience
+  deployedAt: number; // timestamp
 }

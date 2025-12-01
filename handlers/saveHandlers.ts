@@ -15,6 +15,7 @@ export const handleExportSave = (
     generatedSectors: Array.from(gameState.generatedSectors),
     purchasedUnlocks: gameState.purchasedUnlocks || [],
     maxStatLevelOverrides: gameState.maxStatLevelOverrides || {},
+    relays: gameState.relays || [],
     isDesignerOpen: false,
     editingBlueprint: undefined,
   };
@@ -69,6 +70,9 @@ export const handleImportSave = (file: File, setGameState: SetGameState) => {
       }
       if (!loadedData.maxStatLevelOverrides) {
         loadedData.maxStatLevelOverrides = {};
+      }
+      if (!loadedData.relays) {
+        loadedData.relays = [];
       }
 
       setGameState({

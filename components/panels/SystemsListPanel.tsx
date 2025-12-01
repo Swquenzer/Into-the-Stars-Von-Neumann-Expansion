@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Probe, SolarSystem, ProbeState } from "../../types";
+import { Probe, SolarSystem, ProbeState, Relay } from "../../types";
 import { FUEL_CONSUMPTION_RATE, TURN_COST_PER_DEGREE } from "../../constants";
 import {
   Radio,
@@ -23,6 +23,7 @@ const getDistance = (sys: SolarSystem, probe: Probe | undefined) => {
 export interface SystemsPanelProps {
   systems: SolarSystem[];
   probes: Probe[];
+  relays: Relay[];
   selectedSystemId: string | null;
   selectedProbeId: string | null;
   onSystemSelect: (id: string) => void;
@@ -35,6 +36,7 @@ export interface SystemsPanelProps {
 export const SystemsListPanel: React.FC<SystemsPanelProps> = ({
   systems,
   probes,
+  relays,
   selectedSystemId,
   selectedProbeId,
   onSystemSelect,
@@ -137,6 +139,13 @@ export const SystemsListPanel: React.FC<SystemsPanelProps> = ({
                   </div>
                   {!isKnown && (
                     <AlertCircle size={10} className="text-red-500 flex-none" />
+                  )}
+                  {relays.some((r) => r.systemId === system.id) && (
+                    <Radio
+                      size={10}
+                      className="text-purple-400 flex-none"
+                      title="Relay Deployed"
+                    />
                   )}
                 </div>
 

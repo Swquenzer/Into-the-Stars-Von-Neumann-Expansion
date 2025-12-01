@@ -6,11 +6,13 @@ import {
   ProbeState,
   ProbeBlueprint,
   ProbeStats,
+  Relay,
 } from "../../types";
 import {
   TURN_COST_PER_DEGREE,
   UPGRADE_COSTS,
   MAX_STAT_LEVELS,
+  RELAY_DEPLOY_COST_METAL,
 } from "../../constants";
 import {
   Rocket,
@@ -44,6 +46,8 @@ export interface ProbesPanelProps {
   blueprints: ProbeBlueprint[];
   selectedProbeId: string | null;
   maxStatLevelOverrides: Partial<Record<keyof ProbeStats, number>>;
+  purchasedUnlocks: string[];
+  relays: Relay[];
   onProbeSelect: (id: string) => void;
   onSystemSelect: (id: string) => void;
   onMine: (resource: ResourceType) => void;
@@ -58,6 +62,7 @@ export interface ProbesPanelProps {
   onUpgradeProbe: (probeId: string, stat: keyof ProbeStats) => void;
   onSelfDestruct: (probeId: string) => void;
   onToggleAutonomy: (probeId: string) => void;
+  onDeployRelay: () => void;
 }
 
 export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
@@ -66,6 +71,8 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
   blueprints,
   selectedProbeId,
   maxStatLevelOverrides,
+  purchasedUnlocks,
+  relays,
   onProbeSelect,
   onSystemSelect,
   onMine,
@@ -80,6 +87,7 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
   onUpgradeProbe,
   onSelfDestruct,
   onToggleAutonomy,
+  onDeployRelay,
 }) => {
   const selectedProbe = probes.find((p) => p.id === selectedProbeId);
   const [isEditing, setIsEditing] = useState(false);
@@ -125,6 +133,15 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
     currentLocation && currentLocation.resourceYield.Plutonium > 0;
   const canResearch =
     currentLocation && (currentLocation.scienceRemaining ?? 0) > 0;
+  const existingRelayInSystem = currentLocation
+    ? relays.find((r) => r.systemId === currentLocation.id)
+    : null;
+  const canDeployRelay =
+    purchasedUnlocks.includes("relay_network") &&
+    selectedProbe?.state === ProbeState.Idle &&
+    !!selectedProbe?.locationId &&
+    !existingRelayInSystem &&
+    (selectedProbe?.inventory.Metal ?? 0) >= RELAY_DEPLOY_COST_METAL;
 
   // Calculate Turn Cost
   const turnCost = useMemo(() => {
@@ -678,6 +695,28 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                         }
                       >
                         <Activity size={12} /> RESEARCH
+                      </button>
+                      <button
+                        onClick={onDeployRelay}
+                        disabled={!canDeployRelay}
+                        className="flex items-center justify-center gap-1 bg-slate-800 hover:bg-slate-700 text-purple-300 py-1.5 rounded text-[10px] font-bold border border-slate-700 transition-colors disabled:opacity-30"
+                        title={
+                          !purchasedUnlocks.includes("relay_network")
+                            ? "Unlock required: Quantum Relay Network"
+                            : !selectedProbe?.locationId
+                            ? "Must be docked at a system"
+                            : selectedProbe?.state !== ProbeState.Idle
+                            ? "Probe must be Idle"
+                            : existingRelayInSystem
+                            ? "Relay already deployed in this system"
+                            : (selectedProbe?.inventory.Metal ?? 0) <
+                              RELAY_DEPLOY_COST_METAL
+                            ? `Requires ${RELAY_DEPLOY_COST_METAL} Metal`
+                            : ""
+                        }
+                      >
+                        <Satellite size={12} /> DEPLOY RELAY (
+                        {RELAY_DEPLOY_COST_METAL}M)
                       </button>
                     </div>
                   )}

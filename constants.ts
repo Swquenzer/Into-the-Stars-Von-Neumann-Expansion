@@ -16,6 +16,9 @@ export const RESEARCH_RATE_BASE = 2; // Science per second at scanSpeed=1
 export const SCIENCE_DISTANCE_FACTOR = 0.002; // Multiplier per unit distance from Earth
 export const SCIENCE_BASE_PER_SYSTEM = 200; // Base science even near Earth
 
+// Relay Network
+export const RELAY_DEPLOY_COST_METAL = 400; // Metal required to deploy a relay
+
 // Science Unlocks
 export interface ScienceUnlock {
   id: string;
@@ -161,6 +164,17 @@ export const SCIENCE_UNLOCKS: ScienceUnlock[] = [
       target: "replicationSpeed",
       value: 8,
     },
+  },
+
+  // Special Capability Unlocks
+  {
+    id: "relay_network",
+    name: "Quantum Relay Network",
+    description:
+      "Unlock ability to deploy relay stations for long-range communication",
+    category: "sensors",
+    cost: 400,
+    effect: { type: "new_capability", value: 0 },
   },
 ];
 

@@ -224,5 +224,6 @@ export const createInitialState = (): GameState => {
     science: 0,
     purchasedUnlocks: [],
     maxStatLevelOverrides: {},
+    relays: [],
   };
 };

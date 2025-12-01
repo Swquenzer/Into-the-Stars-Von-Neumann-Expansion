@@ -21,6 +21,7 @@ import { SystemsListPanel } from "./panels/SystemsListPanel";
 import { OperationsListPanel } from "./panels/OperationsListPanel";
 import { LogsListPanel } from "./panels/LogsListPanel";
 import { SciencePanel } from "./panels/SciencePanel";
+import { RelaysListPanel } from "./panels/RelaysListPanel";
 
 interface ControlPanelProps {
   gameState: GameState;
@@ -41,6 +42,8 @@ interface ControlPanelProps {
   onSelfDestruct: (probeId: string) => void;
   onToggleAutonomy: (probeId: string) => void;
   onPurchaseUnlock: (unlockId: string) => void;
+  onDeployRelay: () => void;
+  onRemoveRelay: (relayId: string) => void;
   onExportSave: () => void;
   onImportSave: (file: File) => void;
 }
@@ -64,6 +67,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onSelfDestruct,
   onToggleAutonomy,
   onPurchaseUnlock,
+  onDeployRelay,
+  onRemoveRelay,
   onExportSave,
   onImportSave,
 }) => {
@@ -82,6 +87,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     operations: false,
     logs: false,
     science: false,
+    relays: false,
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -140,6 +146,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               blueprints={blueprints}
               selectedProbeId={selectedProbeId}
               maxStatLevelOverrides={gameState.maxStatLevelOverrides}
+              purchasedUnlocks={gameState.purchasedUnlocks}
+              relays={gameState.relays}
               onProbeSelect={onProbeSelect}
               onSystemSelect={onSystemSelect}
               onMine={onMine}
@@ -154,6 +162,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               onUpgradeProbe={onUpgradeProbe}
               onSelfDestruct={onSelfDestruct}
               onToggleAutonomy={onToggleAutonomy}
+              onDeployRelay={onDeployRelay}
             />
           </div>
         )}
@@ -163,6 +172,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             <SystemsListPanel
               systems={systems}
               probes={probes}
+              relays={gameState.relays}
               selectedSystemId={selectedSystemId}
               selectedProbeId={selectedProbeId}
               onSystemSelect={onSystemSelect}
@@ -195,6 +205,17 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             <SciencePanel
               gameState={gameState}
               onPurchaseUnlock={onPurchaseUnlock}
+            />
+          </div>
+        )}
+
+        {activeTabs.relays && (
+          <div className="w-80 h-full border-r border-slate-800">
+            <RelaysListPanel
+              relays={gameState.relays}
+              systems={systems}
+              onSystemSelect={onSystemSelect}
+              onRemoveRelay={onRemoveRelay}
             />
           </div>
         )}
@@ -256,6 +277,17 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           title="Research Tree"
         >
           <Beaker size={20} />
+        </button>
+        <button
+          onClick={() => toggleTab("relays")}
+          className={`p-2 rounded-lg transition-colors ${
+            activeTabs.relays
+              ? "bg-purple-900/50 text-purple-400"
+              : "text-slate-600 hover:bg-slate-900"
+          }`}
+          title="Relay Network"
+        >
+          <Radio size={20} />
         </button>
 
         <div className="flex-1" />

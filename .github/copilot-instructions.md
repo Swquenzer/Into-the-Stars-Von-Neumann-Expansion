@@ -22,6 +22,7 @@ App.tsx                   # State orchestration & game loop coordination
 │   ├── navigationHandlers.ts   # Launch (point-to-point & deep space)
 │   ├── operationHandlers.ts    # Mine, scan, replicate, stop, research
 │   ├── probeHandlers.ts         # Rename, autonomy toggle, upgrade, self-destruct
+│   ├── relayHandlers.ts         # Deploy/remove relay stations
 │   ├── saveHandlers.ts          # Import/export save files
 │   ├── scienceHandlers.ts       # Purchase science unlocks
 │   ├── selectionHandlers.ts    # UI selection state
@@ -36,9 +37,10 @@ App.tsx                   # State orchestration & game loop coordination
 ### Type System (`types.ts`)
 
 - **ProbeState enum**: 8 states (Idle, Mining\*, Traveling, Replicating, Scanning, Exploring, Researching)
-- **Key interfaces**: `Probe`, `SolarSystem`, `ProbeStats`, `ProbeBlueprint`, `GameState`
+- **Key interfaces**: `Probe`, `SolarSystem`, `ProbeStats`, `ProbeBlueprint`, `GameState`, `Relay`
 - Probes track both discrete location (`locationId`) and continuous position (`{ x, y }`)
 - Systems have 3 visibility states: `discovered` (on map), `visited` (probe arrived), `analyzed` (resources revealed)
+- Relays are deployed at systems for infrastructure (tracked in `GameState.relays`)
 
 ### UI Component Structure
 
@@ -51,7 +53,8 @@ App.tsx
 │       ├── SystemsListPanel.tsx     # System list, selection, analysis
 │       ├── OperationsListPanel.tsx  # Active probe controls (mine/travel/scan)
 │       ├── LogsListPanel.tsx        # Event log display
-│       └── SciencePanel.tsx         # Research tree with unlocks
+│       ├── SciencePanel.tsx         # Research tree with unlocks
+│       └── RelaysListPanel.tsx      # Relay network management
 └── ProbeDesigner.tsx        # Modal for custom blueprint creation
 ```
 
@@ -127,6 +130,24 @@ Probes with `stats.autonomyLevel > 0` execute AI logic in `tick()`:
 - **Handler**: `handlePurchaseUnlock()` in `handlers/scienceHandlers.ts` validates cost/prerequisites and applies effects.
 - **UI**: `SciencePanel.tsx` displays tech tree with category grouping, progress tracking, and purchase buttons. Accessed via Beaker tab in ControlPanel.
 - **Integration**: Probe upgrade system (`probeHandlers.ts` and `ProbesListPanel.tsx`) uses dynamic max levels from `maxStatLevelOverrides`.
+
+### Relay Network System
+
+- **Purpose**: Deploy relay stations at systems for infrastructure and future communication capabilities
+- **Unlock**: "Quantum Relay Network" unlock (400 science, no prerequisites) in Science tree
+- **Deployment**:
+  - Cost: 400 Metal per relay (constant `RELAY_DEPLOY_COST_METAL`)
+  - Requirements: Probe must be Idle, docked at a system, unlock purchased
+  - Constraint: Only one relay per system (enforced in `handleDeployRelay`)
+  - Deducts metal from probe inventory on deployment
+- **State**: `GameState.relays` array of `Relay` objects with `{ id, name, systemId, position, deployedAt }`
+- **Handlers**: `relayHandlers.ts` provides `handleDeployRelay` and `handleRemoveRelay`
+- **UI Integration**:
+  - Deploy button in `ProbesListPanel` (Extra Actions) shows cost and validates conditions
+  - `RelaysListPanel` shows all deployed relays with system info, jump-to-system, and remove buttons
+  - `SystemsListPanel` displays purple Radio icon next to systems with relays
+  - `StarMap` renders relay markers as purple circles with dashed rings at system positions
+- **Save/Load**: Relays serialized in `saveHandlers.ts` with backward compatibility (defaults to empty array)
 
 ## Development Patterns
 
@@ -227,6 +248,7 @@ return { ...prev, probes: finalProbes, logs: [...prev.logs, ...newLogs] };
 - **Upgrade Costs**: Defined in `UPGRADE_COSTS`, pattern: `{ Metal, Plutonium, increment, name }`
   - Cost scales with level: `cost = baseCost * (currentLevel + 1)`
   - Example: Level 0→1 costs 100M, Level 1→2 costs 200M, etc.
+- **Relay Deployment**: `RELAY_DEPLOY_COST_METAL = 400` - Metal cost to deploy a relay station
 - **Max Stat Levels** (`MAX_STAT_LEVELS`):
   - Mining Speed: 10, Flight Speed: 10, Replication Speed: 5
   - Scan Range: 1000 LY, Scan Speed: 5x, Autonomy: 2

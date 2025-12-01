@@ -54,6 +54,10 @@ import {
   handleDeleteBlueprint as deleteBlueprint,
 } from "./handlers/blueprintHandlers";
 import { handlePurchaseUnlock as purchaseUnlock } from "./handlers/scienceHandlers";
+import {
+  handleDeployRelay as deployRelay,
+  handleRemoveRelay as removeRelay,
+} from "./handlers/relayHandlers";
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
@@ -93,6 +97,9 @@ export default function App() {
   const handleImportSave = (file: File) => importSave(file, setGameState);
   const handlePurchaseUnlock = (unlockId: string) =>
     purchaseUnlock(setGameState, gameState, unlockId);
+  const handleDeployRelay = () => deployRelay(setGameState, gameState);
+  const handleRemoveRelay = (relayId: string) =>
+    removeRelay(setGameState, gameState, relayId);
 
   // --- Game Loop ---
   const tick = useCallback(() => {
@@ -357,6 +364,8 @@ export default function App() {
         onSelfDestruct={handleSelfDestruct}
         onToggleAutonomy={handleToggleAutonomy}
         onPurchaseUnlock={handlePurchaseUnlock}
+        onDeployRelay={handleDeployRelay}
+        onRemoveRelay={handleRemoveRelay}
         onExportSave={handleExportSave}
         onImportSave={handleImportSave}
       />
