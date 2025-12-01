@@ -268,8 +268,13 @@ export default function App() {
             systemsChanged = true;
           }
           // Check autonomy after resources were transferred
-          if (result.shouldCheckAutonomy && updatedProbe.stats.autonomyLevel > 0 && updatedProbe.isAutonomyEnabled) {
-            const hasRelayUnlock = prev.purchasedUnlocks?.includes("quantum_relay_network") || false;
+          if (
+            result.shouldCheckAutonomy &&
+            updatedProbe.stats.autonomyLevel > 0 &&
+            updatedProbe.isAutonomyEnabled
+          ) {
+            const hasRelayUnlock =
+              prev.purchasedUnlocks?.includes("quantum_relay_network") || false;
             const autonomyResult = processAutonomousProbe(
               updatedProbe,
               newSystems,
@@ -284,7 +289,9 @@ export default function App() {
             }
             if (autonomyResult.systemChanges) {
               autonomyResult.systemChanges.forEach((change) => {
-                const idx = newSystems.findIndex((s) => s.id === change.systemId);
+                const idx = newSystems.findIndex(
+                  (s) => s.id === change.systemId
+                );
                 if (idx > -1) {
                   newSystems[idx] = { ...newSystems[idx], ...change.changes };
                   systemsChanged = true;

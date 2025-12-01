@@ -444,7 +444,8 @@ export const processMiningProbe = (
       updatedProbe.miningBuffer -= transferAmount;
 
       // Update batch progress for default behavior tracking
-      updatedProbe.miningBatchProgress = (updatedProbe.miningBatchProgress ?? 0) + actualTransfer;
+      updatedProbe.miningBatchProgress =
+        (updatedProbe.miningBatchProgress ?? 0) + actualTransfer;
 
       systemYieldUpdate = {
         index: sysIndex,

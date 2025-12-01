@@ -32,10 +32,7 @@ export const processAutonomousProbe = (
   hasRelayUnlock: boolean = false
 ): AutonomyResult => {
   // Only process if AI is enabled
-  if (
-    probe.stats.autonomyLevel === 0 ||
-    !probe.isAutonomyEnabled
-  ) {
+  if (probe.stats.autonomyLevel === 0 || !probe.isAutonomyEnabled) {
     return { probe };
   }
 

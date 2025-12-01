@@ -186,7 +186,7 @@ export const processDefaultBehavior = (
 
   // Determine which resource to mine
   let targetResource: "metal" | "plutonium";
-  
+
   if (shouldSwitch) {
     // Switch to the opposite of what we were mining
     if (currentlyMiningMetal) {
@@ -204,11 +204,14 @@ export const processDefaultBehavior = (
   if (targetResource === "metal" && currentSystem.resourceYield.Metal > 0) {
     return {
       action: "mine_metal",
-      reason: shouldSwitch 
+      reason: shouldSwitch
         ? `Default behavior: switching to Metal (batch complete)`
         : `Default behavior: mining Metal (${batchProgress}/10)`,
     };
-  } else if (targetResource === "plutonium" && currentSystem.resourceYield.Plutonium > 0) {
+  } else if (
+    targetResource === "plutonium" &&
+    currentSystem.resourceYield.Plutonium > 0
+  ) {
     return {
       action: "mine_plutonium",
       reason: shouldSwitch
