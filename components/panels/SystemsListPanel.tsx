@@ -1,6 +1,11 @@
 import React, { useMemo } from "react";
 import { Probe, SolarSystem, ProbeState, Relay } from "../../types";
-import { FUEL_CONSUMPTION_RATE, TURN_COST_PER_DEGREE } from "../../constants";
+import {
+  FUEL_CONSUMPTION_RATE,
+  TURN_COST_PER_DEGREE,
+  STORAGE_BUILD_COST,
+  SCIENCE_UNLOCK_IDS,
+} from "../../constants";
 import {
   Radio,
   AlertCircle,
@@ -24,6 +29,7 @@ export interface SystemsPanelProps {
   systems: SolarSystem[];
   probes: Probe[];
   relays: Relay[];
+  purchasedUnlocks: string[];
   selectedSystemId: string | null;
   selectedProbeId: string | null;
   onSystemSelect: (id: string) => void;
@@ -31,12 +37,14 @@ export interface SystemsPanelProps {
   onAnalyze: (id: string) => void;
   onLaunch: (id: string) => void;
   onDeepSpaceLaunch: (heading: number) => void;
+  onBuildStorageFacility: () => void;
 }
 
 export const SystemsListPanel: React.FC<SystemsPanelProps> = ({
   systems,
   probes,
   relays,
+  purchasedUnlocks,
   selectedSystemId,
   selectedProbeId,
   onSystemSelect,
@@ -44,6 +52,7 @@ export const SystemsListPanel: React.FC<SystemsPanelProps> = ({
   onAnalyze,
   onLaunch,
   onDeepSpaceLaunch,
+  onBuildStorageFacility,
 }) => {
   const selectedSystem = systems.find((s) => s.id === selectedSystemId);
   const selectedProbe = probes.find((p) => p.id === selectedProbeId);
@@ -241,6 +250,83 @@ export const SystemsListPanel: React.FC<SystemsPanelProps> = ({
                 Unknown Composition
               </div>
             )}
+
+            {/* Storage Facility Section */}
+            <div className="bg-slate-900 p-2 rounded border border-slate-800">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[10px] font-bold text-slate-400">SYSTEM STORAGE</span>
+                {!selectedSystem.storageFacility && (
+                  <button
+                    onClick={onBuildStorageFacility}
+                    disabled={
+                      !selectedProbe ||
+                      selectedProbe.state !== ProbeState.Idle ||
+                      selectedProbe.locationId !== selectedSystem.id ||
+                      !purchasedUnlocks.includes(SCIENCE_UNLOCK_IDS.PLANETARY_LOGISTICS) ||
+                      (selectedProbe.inventory.Metal < STORAGE_BUILD_COST.Metal ||
+                        selectedProbe.inventory.Plutonium < STORAGE_BUILD_COST.Plutonium)
+                    }
+                    className={`text-[10px] px-2 py-1 rounded border transition-colors ${
+                      selectedProbe &&
+                      selectedProbe.state === ProbeState.Idle &&
+                      selectedProbe.locationId === selectedSystem.id &&
+                      purchasedUnlocks.includes(SCIENCE_UNLOCK_IDS.PLANETARY_LOGISTICS) &&
+                      selectedProbe.inventory.Metal >= STORAGE_BUILD_COST.Metal &&
+                      selectedProbe.inventory.Plutonium >= STORAGE_BUILD_COST.Plutonium
+                        ? "bg-emerald-900/40 border-emerald-800 text-emerald-300 hover:bg-emerald-900/60"
+                        : "bg-slate-950 border-slate-800 text-slate-600 cursor-not-allowed"
+                    }`}
+                    title={
+                      !purchasedUnlocks.includes(
+                        SCIENCE_UNLOCK_IDS.PLANETARY_LOGISTICS
+                      )
+                        ? "Unlock required: Planetary Logistics"
+                        : !selectedProbe
+                        ? "Select a probe"
+                        : selectedProbe.state !== ProbeState.Idle
+                        ? "Probe must be Idle"
+                        : selectedProbe.locationId !== selectedSystem.id
+                        ? "Probe must be docked at this system"
+                        : selectedProbe.inventory.Metal < STORAGE_BUILD_COST.Metal ||
+                          selectedProbe.inventory.Plutonium < STORAGE_BUILD_COST.Plutonium
+                        ? `Requires ${STORAGE_BUILD_COST.Metal} Metal, ${STORAGE_BUILD_COST.Plutonium} Plutonium`
+                        : ""
+                    }
+                  >
+                    Build Storage Facility
+                  </button>
+                )}
+              </div>
+              {selectedSystem.storageFacility ? (
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-slate-950 p-1.5 rounded border border-slate-800">
+                    <div className="text-[10px] text-slate-500">METAL</div>
+                    <div className="text-yellow-400 font-mono text-xs">
+                      {Math.floor(selectedSystem.storageFacility.Metal)}
+                    </div>
+                  </div>
+                  <div className="bg-slate-950 p-1.5 rounded border border-slate-800">
+                    <div className="text-[10px] text-slate-500">PLUTONIUM</div>
+                    <div className="text-teal-400 font-mono text-xs">
+                      {Math.floor(selectedSystem.storageFacility.Plutonium)}
+                    </div>
+                  </div>
+                  <div className="bg-slate-950 p-1.5 rounded border border-slate-800">
+                    <div className="text-[10px] text-slate-500">CAPACITY</div>
+                    <div className="text-slate-300 font-mono text-xs">
+                      {Math.floor(
+                        selectedSystem.storageFacility.Metal +
+                          selectedSystem.storageFacility.Plutonium
+                      )} / {selectedSystem.storageFacility.capacity}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-[10px] text-slate-600 italic">
+                  No facility constructed.
+                </div>
+              )}
+            </div>
 
             {/* Docked Probes Sub-section */}
             <div>

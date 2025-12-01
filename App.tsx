@@ -60,6 +60,11 @@ import {
   handleRemoveRelay as removeRelay,
 } from "./handlers/relayHandlers";
 import {
+  handleBuildStorageFacility as buildStorageFacility,
+  handleDepositToStorage as depositToStorage,
+  handleWithdrawFromStorage as withdrawFromStorage,
+} from "./handlers/storageHandlers";
+import {
   handleSetAIBehavior as setAIBehavior,
   handleInstallAIModule as installAIModule,
   handleUninstallAIModule as uninstallAIModule,
@@ -122,6 +127,14 @@ export default function App() {
     uninstallAIModule(setGameState, gameState, probeId, behavior);
   const handleRemoveRelay = (relayId: string) =>
     removeRelay(setGameState, gameState, relayId);
+  const handleBuildStorageFacility = () =>
+    buildStorageFacility(setGameState, gameState);
+  const handleDepositToStorage = (amount: number, resource: ResourceType) =>
+    depositToStorage(setGameState, gameState, amount, resource);
+  const handleWithdrawFromStorage = (
+    amount: number,
+    resource: ResourceType
+  ) => withdrawFromStorage(setGameState, gameState, amount, resource);
 
   // --- Game Loop ---
   const tick = useCallback(() => {
@@ -441,6 +454,9 @@ export default function App() {
         onUninstallAIModule={handleUninstallAIModule}
         onExportSave={handleExportSave}
         onImportSave={handleImportSave}
+        onBuildStorageFacility={handleBuildStorageFacility}
+        onDepositToStorage={handleDepositToStorage}
+        onWithdrawFromStorage={handleWithdrawFromStorage}
       />
       {gameState.isDesignerOpen && (
         <ProbeDesigner

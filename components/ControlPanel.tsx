@@ -49,6 +49,9 @@ interface ControlPanelProps {
   onUninstallAIModule: (probeId: string, behavior: any) => void;
   onExportSave: () => void;
   onImportSave: (file: File) => void;
+  onBuildStorageFacility: () => void;
+  onDepositToStorage: (amount: number, resource: ResourceType) => void;
+  onWithdrawFromStorage: (amount: number, resource: ResourceType) => void;
 }
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -77,6 +80,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onUninstallAIModule,
   onExportSave,
   onImportSave,
+  onBuildStorageFacility,
+  onDepositToStorage,
+  onWithdrawFromStorage,
 }) => {
   const {
     probes,
@@ -157,6 +163,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               onSetAIBehavior={onSetAIBehavior}
               onInstallAIModule={onInstallAIModule}
               onUninstallAIModule={onUninstallAIModule}
+              onBuildStorageFacility={onBuildStorageFacility}
+              onDepositToStorage={onDepositToStorage}
+              onWithdrawFromStorage={onWithdrawFromStorage}
             />
           </div>
         )}
@@ -167,6 +176,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               systems={systems}
               probes={probes}
               relays={gameState.relays}
+              purchasedUnlocks={gameState.purchasedUnlocks}
               selectedSystemId={selectedSystemId}
               selectedProbeId={selectedProbeId}
               onSystemSelect={onSystemSelect}
@@ -174,6 +184,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               onAnalyze={onAnalyze}
               onLaunch={onLaunch}
               onDeepSpaceLaunch={onDeepSpaceLaunch}
+              onBuildStorageFacility={onBuildStorageFacility}
             />
           </div>
         )}

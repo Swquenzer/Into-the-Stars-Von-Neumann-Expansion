@@ -71,6 +71,13 @@ export interface SolarSystem {
   };
   scienceRemaining?: number; // Finite science pool remaining in this system
   scienceTotal?: number; // Original total science for display/analytics
+  storageFacility?: StorageFacility; // Optional per-system storage facility
+}
+
+export interface StorageFacility {
+  Metal: number;
+  Plutonium: number;
+  capacity: number;
 }
 
 export interface ProbeStats {

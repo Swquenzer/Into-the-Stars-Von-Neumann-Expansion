@@ -72,6 +72,9 @@ export interface ProbesPanelProps {
   onSetAIBehavior: (probeId: string, behavior: any) => void;
   onInstallAIModule: (probeId: string, behavior: any) => void;
   onUninstallAIModule: (probeId: string, behavior: any) => void;
+  onBuildStorageFacility: () => void;
+  onDepositToStorage: (amount: number, resource: ResourceType) => void;
+  onWithdrawFromStorage: (amount: number, resource: ResourceType) => void;
 }
 
 export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
@@ -100,6 +103,9 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
   onSetAIBehavior,
   onInstallAIModule,
   onUninstallAIModule,
+  onBuildStorageFacility,
+  onDepositToStorage,
+  onWithdrawFromStorage,
 }) => {
   const selectedProbe = probes.find((p) => p.id === selectedProbeId);
   const [isEditing, setIsEditing] = useState(false);
@@ -172,6 +178,16 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
     selectedProbe?.isSolarSailing ||
     (selectedProbe?.state === ProbeState.Exploring &&
       selectedProbe?.inventory.Plutonium <= 0);
+
+  // Storage Facility UI State
+  const facility = currentLocation?.storageFacility;
+  const remainingCapacity = facility
+    ? Math.max(0, facility.capacity - (facility.Metal + facility.Plutonium))
+    : 0;
+  const [depMetal, setDepMetal] = useState(0);
+  const [depPu, setDepPu] = useState(0);
+  const [wdMetal, setWdMetal] = useState(0);
+  const [wdPu, setWdPu] = useState(0);
 
   // Helper to render upgrade row
   const renderUpgradeRow = (
@@ -893,6 +909,198 @@ export const ProbesListPanel: React.FC<ProbesPanelProps> = ({
                       </button>
                     </div>
                   )}
+
+                  {/* Storage Facility Transfers */}
+                  {selectedProbe?.state === ProbeState.Idle &&
+                    selectedProbe?.locationId &&
+                    facility && (
+                      <div className="mt-2 bg-slate-900 rounded border border-slate-800 p-2">
+                        <div className="text-[10px] text-slate-600 font-bold mb-1">
+                          SYSTEM STORAGE TRANSFERS
+                        </div>
+
+                        {/* Facility Status */}
+                        <div className="grid grid-cols-3 gap-2 mb-2">
+                          <div className="bg-slate-950 p-1.5 rounded border border-slate-800">
+                            <div className="text-[10px] text-slate-500">METAL</div>
+                            <div className="text-yellow-400 font-mono text-xs">
+                              {Math.floor(facility.Metal)}
+                            </div>
+                          </div>
+                          <div className="bg-slate-950 p-1.5 rounded border border-slate-800">
+                            <div className="text-[10px] text-slate-500">PLUTONIUM</div>
+                            <div className="text-teal-400 font-mono text-xs">
+                              {Math.floor(facility.Plutonium)}
+                            </div>
+                          </div>
+                          <div className="bg-slate-950 p-1.5 rounded border border-slate-800">
+                            <div className="text-[10px] text-slate-500">CAPACITY</div>
+                            <div className="text-slate-300 font-mono text-xs">
+                              {Math.floor(facility.Metal + facility.Plutonium)} / {facility.capacity}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Deposit Metal */}
+                        <div className="grid grid-cols-3 gap-1 items-center mb-1">
+                          <span className="text-[10px] text-yellow-300 font-bold">DEPOSIT M</span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={depMetal}
+                            onChange={(e) => setDepMetal(Math.max(0, Number(e.target.value) || 0))}
+                            className="bg-slate-950 text-slate-200 text-[10px] border border-slate-700 rounded px-1 py-0.5"
+                          />
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => onDepositToStorage(depMetal, ResourceType.Metal)}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300"
+                            >
+                              GO
+                            </button>
+                            <button
+                              onClick={() => setDepMetal(Math.floor((selectedProbe.inventory.Metal || 0) * 0.25))}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 border border-slate-700 text-slate-300"
+                            >
+                              25%
+                            </button>
+                            <button
+                              onClick={() => setDepMetal(Math.floor((selectedProbe.inventory.Metal || 0) * 0.5))}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 border border-slate-700 text-slate-300"
+                            >
+                              50%
+                            </button>
+                            <button
+                              onClick={() => setDepMetal(Math.floor(selectedProbe.inventory.Metal || 0))}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 border border-slate-700 text-slate-300"
+                            >
+                              MAX
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Deposit Plutonium */}
+                        <div className="grid grid-cols-3 gap-1 items-center mb-2">
+                          <span className="text-[10px] text-teal-300 font-bold">DEPOSIT P</span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={depPu}
+                            onChange={(e) => setDepPu(Math.max(0, Number(e.target.value) || 0))}
+                            className="bg-slate-950 text-slate-200 text-[10px] border border-slate-700 rounded px-1 py-0.5"
+                          />
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => onDepositToStorage(depPu, ResourceType.Plutonium)}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300"
+                            >
+                              GO
+                            </button>
+                            <button
+                              onClick={() => setDepPu(Math.floor((selectedProbe.inventory.Plutonium || 0) * 0.25))}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 border border-slate-700 text-slate-300"
+                            >
+                              25%
+                            </button>
+                            <button
+                              onClick={() => setDepPu(Math.floor((selectedProbe.inventory.Plutonium || 0) * 0.5))}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 border border-slate-700 text-slate-300"
+                            >
+                              50%
+                            </button>
+                            <button
+                              onClick={() => setDepPu(Math.floor(selectedProbe.inventory.Plutonium || 0))}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 border border-slate-700 text-slate-300"
+                            >
+                              MAX
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Withdraw Metal */}
+                        <div className="grid grid-cols-3 gap-1 items-center mb-1">
+                          <span className="text-[10px] text-yellow-300 font-bold">WITHDRAW M</span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={wdMetal}
+                            onChange={(e) => setWdMetal(Math.max(0, Number(e.target.value) || 0))}
+                            className="bg-slate-950 text-slate-200 text-[10px] border border-slate-700 rounded px-1 py-0.5"
+                          />
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => onWithdrawFromStorage(wdMetal, ResourceType.Metal)}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300"
+                            >
+                              GO
+                            </button>
+                            <button
+                              onClick={() => setWdMetal(Math.floor((facility.Metal || 0) * 0.25))}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 border border-slate-700 text-slate-300"
+                            >
+                              25%
+                            </button>
+                            <button
+                              onClick={() => setWdMetal(Math.floor((facility.Metal || 0) * 0.5))}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 border border-slate-700 text-slate-300"
+                            >
+                              50%
+                            </button>
+                            <button
+                              onClick={() => setWdMetal(Math.floor(facility.Metal || 0))}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 border border-slate-700 text-slate-300"
+                            >
+                              MAX
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Withdraw Plutonium */}
+                        <div className="grid grid-cols-3 gap-1 items-center">
+                          <span className="text-[10px] text-teal-300 font-bold">WITHDRAW P</span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={wdPu}
+                            onChange={(e) => setWdPu(Math.max(0, Number(e.target.value) || 0))}
+                            className="bg-slate-950 text-slate-200 text-[10px] border border-slate-700 rounded px-1 py-0.5"
+                          />
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => onWithdrawFromStorage(wdPu, ResourceType.Plutonium)}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300"
+                            >
+                              GO
+                            </button>
+                            <button
+                              onClick={() => setWdPu(Math.floor((facility.Plutonium || 0) * 0.25))}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 border border-slate-700 text-slate-300"
+                            >
+                              25%
+                            </button>
+                            <button
+                              onClick={() => setWdPu(Math.floor((facility.Plutonium || 0) * 0.5))}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 border border-slate-700 text-slate-300"
+                            >
+                              50%
+                            </button>
+                            <button
+                              onClick={() => setWdPu(Math.floor(facility.Plutonium || 0))}
+                              className="px-2 py-0.5 text-[10px] rounded bg-slate-800 border border-slate-700 text-slate-300"
+                            >
+                              MAX
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Validation messages */}
+                        {remainingCapacity <= 0 && (
+                          <div className="text-[10px] text-amber-400 mt-1">
+                            Insufficient storage capacity.
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                   {/* Stop Button (Contextual) */}
                   {selectedProbe.state !== ProbeState.Idle &&

@@ -18,6 +18,11 @@ export const SCIENCE_BASE_PER_SYSTEM = 20; // Base science even near Earth
 // Relay Network
 export const RELAY_DEPLOY_COST_METAL = 400; // Metal required to deploy a relay
 
+// System Storage
+export const STORAGE_CAPACITY_BASE = 2000; // Total units per facility
+export const STORAGE_BUILD_COST = { Metal: 600, Plutonium: 100 };
+export const TRANSFER_RATE_MAX = 500; // Max per manual transfer action
+
 // Science Unlocks - Type-safe IDs
 export const SCIENCE_UNLOCK_IDS = {
   // Tier 1
@@ -38,6 +43,7 @@ export const SCIENCE_UNLOCK_IDS = {
   FABRICATION_ULTIMATE: "fabrication_ultimate",
   // Special
   RELAY_NETWORK: "relay_network",
+  PLANETARY_LOGISTICS: "planetary_logistics",
   // AI Behaviors
   AI_BEHAVIOR_PROTOCOLS: "ai_behavior_protocols",
   FOCUS_MINING_MODULE: "focus_mining_module",
@@ -203,6 +209,15 @@ export const SCIENCE_UNLOCKS: ScienceUnlock[] = [
       "Unlock ability to deploy relay stations for long-range communication",
     category: "sensors",
     cost: 400,
+    effect: { type: "new_capability", value: 0 },
+  },
+  {
+    id: SCIENCE_UNLOCK_IDS.PLANETARY_LOGISTICS,
+    name: "Planetary Logistics",
+    description:
+      "Unlock construction of storage facilities at visited systems",
+    category: "fabrication",
+    cost: 800,
     effect: { type: "new_capability", value: 0 },
   },
 
