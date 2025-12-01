@@ -184,16 +184,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           </div>
         )}
 
-        {activeTabs.operations && (
-          <div className="w-72 h-full border-r border-slate-800">
-            <OperationsListPanel
-              probes={probes}
-              systems={systems}
-              onProbeSelect={onProbeSelect}
-            />
-          </div>
-        )}
-
         {activeTabs.logs && (
           <div className="w-72 h-full border-r border-slate-800">
             <LogsListPanel logs={logs} />
@@ -216,6 +206,16 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               systems={systems}
               onSystemSelect={onSystemSelect}
               onRemoveRelay={onRemoveRelay}
+            />
+          </div>
+        )}
+
+        {activeTabs.operations && (
+          <div className="w-72 h-full border-r border-slate-800">
+            <OperationsListPanel
+              probes={probes}
+              systems={systems}
+              onProbeSelect={onProbeSelect}
             />
           </div>
         )}
@@ -257,17 +257,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           <Activity size={20} />
         </button>
         <button
-          onClick={() => toggleTab("logs")}
-          className={`p-2 rounded-lg transition-colors ${
-            activeTabs.logs
-              ? "bg-slate-800 text-slate-200"
-              : "text-slate-600 hover:bg-slate-900"
-          }`}
-          title="Mission Logs"
-        >
-          <Terminal size={20} />
-        </button>
-        <button
           onClick={() => toggleTab("science")}
           className={`p-2 rounded-lg transition-colors ${
             activeTabs.science
@@ -291,6 +280,18 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </button>
 
         <div className="flex-1" />
+
+        <button
+          onClick={() => toggleTab("logs")}
+          className={`p-2 rounded-lg transition-colors ${
+            activeTabs.logs
+              ? "bg-slate-800 text-slate-200"
+              : "text-slate-600 hover:bg-slate-900"
+          }`}
+          title="Mission Logs"
+        >
+          <Terminal size={20} />
+        </button>
 
         <input
           type="file"

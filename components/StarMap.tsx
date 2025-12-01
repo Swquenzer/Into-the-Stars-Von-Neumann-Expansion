@@ -376,6 +376,9 @@ export const StarMap: React.FC<StarMapProps> = ({
         <div>
           Systems Detected: {visibleSystems.length} / {systems.length}
         </div>
+        <div>Total Probes: {probes.length}</div>
+        <div>Relays Deployed: {relays.length}</div>
+        <div>Science Acquired: {gameState.science.toFixed(0)}</div>
         <div>Zoom: {viewState.zoom.toFixed(1)}x</div>
         <div className="text-xs opacity-70 mt-1">
           Drag to Pan • Scroll to Zoom

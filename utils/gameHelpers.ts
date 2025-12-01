@@ -202,7 +202,7 @@ export const createInitialState = (): GameState => {
     lastScannedSystemId: "sys-earth", // Assume earth is scanned
     position: { ...earth.position },
     targetSystemId: null,
-    inventory: { [ResourceType.Metal]: 100, [ResourceType.Plutonium]: 100 },
+    inventory: { [ResourceType.Metal]: 40, [ResourceType.Plutonium]: 10 },
     stats: PROBE_STATS[ProbeModel.MarkI],
     progress: 0,
     miningBuffer: 0,

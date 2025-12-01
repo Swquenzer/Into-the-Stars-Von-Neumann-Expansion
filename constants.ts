@@ -227,8 +227,8 @@ export const COST_MULTIPLIERS = {
 // Upgrade Configuration
 export const UPGRADE_COSTS = {
   miningSpeed: {
-    Metal: 100,
-    Plutonium: 10,
+    Metal: 50,
+    Plutonium: 5,
     increment: 1,
     name: "Carbide Drills",
   },
